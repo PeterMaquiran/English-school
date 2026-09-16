@@ -1,0 +1,42 @@
+---
+description: NestJS API folder split, feature modules, Prisma, auth, and infrastructure conventions
+globs: apps/api/**/*.ts
+alwaysApply: false
+---
+
+# NestJS API source layout
+
+Follow `apps/api/AGENTS.md`. Package manager is **pnpm**. Listen port **3001**. Prisma schema is `apps/api/prisma/`, never under `src`.
+
+## Folder split
+
+```
+apps/api/src/
+  main.ts, app.module.ts
+  config/           # configuration.ts — env → typed config
+  module/           # one folder per HTTP resource
+  infrastructure/   # storage, notifications, brokker (RabbitMQ spelling)
+  shared/           # prisma, decorators, guards, dto, middleware, utils
+```
+
+Do not put MinIO/Keycloak/Rabbit clients inside a feature folder.
+
+## Feature module (`src/module/<name>/`)
+
+Usually plural (`articles`). Exception: `video`.
+
+- `<name>.module.ts` — register in `app.module.ts` `imports`
+- `<name>.controller.ts` — HTTP only; delegate to service
+- `<name>.service.ts` — Prisma + business rules; inject `PrismaService`, never `new PrismaClient`
+- `dto/` — one class per file (`create-*.dto.ts`, `update-*.dto.ts`, `list-*-query.dto.ts`)
+- optional `<name>.processor.ts` for BullMQ
+
+Controllers: `@Controller('resource-path')`, `@ApiTags`, `ParseUUIDPipe` for UUIDs, `@CurrentDbUser()` from `shared/decorators`. Public reads unauthenticated. Writes: `AuthGuard('keycloak')` + `UserProvisioningGuard` + `RolesGuard` + `@Roles(...)`.
+
+Pagination: `shared/dto/pagination-query.dto.ts`. Shared imports: relative `../../shared/...`.
+
+## Bootstrap
+
+- Import `./shared/utils/tracing` **before** `NestFactory`
+- Global `ValidationPipe`: `whitelist`, `transform`, `forbidNonWhitelisted`
+- New env keys go in `src/config/configuration.ts` then `ConfigService`
