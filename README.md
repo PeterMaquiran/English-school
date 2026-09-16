@@ -5,7 +5,7 @@ pnpm monorepo with a NestJS API and a Next.js frontend.
 ## Apps
 
 - `apps/api` — NestJS backend (layout for agents: `apps/api/AGENTS.md`)
-- `apps/web` — Next.js frontend
+- `apps/web` — Next.js frontend (layout for agents: `apps/web/AGENTS.md`)
 
 ## Setup
 

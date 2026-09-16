@@ -1,0 +1,35 @@
+---
+description: Next.js web folder split — App Router, modules, infra HTTP, neverthrow
+globs: apps/web/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Next.js web source layout
+
+Follow `apps/web/AGENTS.md`. Next.js **App Router** (not Vite / React Router). pnpm. API is Nest on **3001**.
+
+When the first feature lands, use `src/app` (not package-root `app/`). `@/` → `src/`.
+
+## Folder split
+
+```
+apps/web/src/
+  app/           # routes only: page.tsx, layout.tsx, loading.tsx, error.tsx
+  components/    # UI, no fetch
+  module/        # repository, dtos, use-case, client hooks
+  infra/         # HTTP client only
+  utils/         # pure helpers
+```
+
+Do not add `src/app/api` CRUD proxies. Do not put Keycloak or `fetch` inside components.
+
+## Feature module (`src/module/<entity>/`)
+
+- `{entity}.repository.ts` — one HTTP verb per method
+- `use-case/{kebab-name}.ts` — multi-step / validated writes
+- `{entity}-module.ts` — `new XRepository(apiClient)`
+- Results: `Result<ApiSuccess<T>, ApiError>` (neverthrow). No `try/catch` fetch. UI: `getApiErrorMessage`.
+
+Pages are thin Server Components by default. `'use client'` only for events, browser APIs, or hooks. Server Actions only wrap use-cases.
+
+Copy the nearest sibling. Entities follow the API: `auth`, `users`, `articles`, `video`, …
