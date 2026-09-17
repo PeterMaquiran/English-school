@@ -13,6 +13,19 @@ function pathWithoutQuery(url?: string): string {
   return url?.split('?')[0] ?? '/';
 }
 
+const pinoPrettyTransport =
+  process.env.NODE_ENV === 'production'
+    ? undefined
+    : {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          singleLine: true,
+          translateTime: 'SYS:HH:MM:ss.l',
+          ignore: 'pid,hostname',
+        },
+      };
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -26,6 +39,7 @@ function pathWithoutQuery(url?: string): string {
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
+        transport: pinoPrettyTransport,
         base: {
           service: 'api',
           environment: process.env.NODE_ENV ?? 'development',
