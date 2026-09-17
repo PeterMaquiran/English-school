@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
@@ -39,7 +36,10 @@ export class AuthService {
     private readonly config: ConfigService,
   ) {}
 
-  async login(email: string, password: string): Promise<{
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{
     user: PublicUser;
     tokens: AuthTokens;
   }> {
@@ -62,7 +62,11 @@ export class AuthService {
       include: { user: true },
     });
 
-    if (!stored || stored.userId !== payload.sub || stored.expiresAt < new Date()) {
+    if (
+      !stored ||
+      stored.userId !== payload.sub ||
+      stored.expiresAt < new Date()
+    ) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 

@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { authRepository, type AuthUser } from "@/module/auth";
+import { useEffect, useState } from 'react';
+import { authRepository, type AuthUser } from '@/module/auth';
 
 type SessionState =
-  | { status: "loading"; user: null }
-  | { status: "authenticated"; user: AuthUser }
-  | { status: "unauthenticated"; user: null };
+  | { status: 'loading'; user: null }
+  | { status: 'authenticated'; user: AuthUser }
+  | { status: 'unauthenticated'; user: null };
 
 export function useSession() {
   const [state, setState] = useState<SessionState>({
-    status: "loading",
+    status: 'loading',
     user: null,
   });
 
@@ -23,11 +23,11 @@ export function useSession() {
       }
 
       if (result.isErr()) {
-        setState({ status: "unauthenticated", user: null });
+        setState({ status: 'unauthenticated', user: null });
         return;
       }
 
-      setState({ status: "authenticated", user: result.value.data });
+      setState({ status: 'authenticated', user: result.value.data });
     });
 
     return () => {

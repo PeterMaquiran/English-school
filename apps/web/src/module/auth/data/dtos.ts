@@ -1,9 +1,5 @@
 export type UserRole =
-  | "admin"
-  | "front_desk"
-  | "teacher"
-  | "student"
-  | "parent";
+  'admin' | 'front_desk' | 'teacher' | 'student' | 'parent';
 
 export type AuthUser = {
   id: string;

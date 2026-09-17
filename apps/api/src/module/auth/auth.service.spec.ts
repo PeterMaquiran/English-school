@@ -44,9 +44,9 @@ describe('AuthService', () => {
   it('rejects unknown credentials', async () => {
     users.findByEmail.mockResolvedValue(null);
 
-    await expect(service.login('nobody@school.local', 'secret')).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(
+      service.login('nobody@school.local', 'secret'),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('returns a public user after a valid password', async () => {

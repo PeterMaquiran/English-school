@@ -1,4 +1,7 @@
-import { CompositePropagator, W3CTraceContextPropagator } from '@opentelemetry/core';
+import {
+  CompositePropagator,
+  W3CTraceContextPropagator,
+} from '@opentelemetry/core';
 import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
@@ -12,7 +15,8 @@ import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 if (process.env.OTEL_SDK_DISABLED !== 'true') {
   const sdk = new NodeSDK({
     resource: resourceFromAttributes({
-      [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME ?? 'english-school-api',
+      [ATTR_SERVICE_NAME]:
+        process.env.OTEL_SERVICE_NAME ?? 'english-school-api',
       'deployment.environment.name': process.env.NODE_ENV ?? 'development',
     }),
     traceExporter: new ZipkinExporter({

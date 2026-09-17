@@ -1,13 +1,13 @@
-import { err, ok, type Result } from "neverthrow";
-import { ApiError } from "@/infra/http/api-error";
+import { err, ok, type Result } from 'neverthrow';
+import { ApiError } from '@/infra/http/api-error';
 import {
   applyObservabilityHeaders,
   createRequestId,
   incomingRequestId,
   logClientRequest,
-} from "@/infra/http/observability";
+} from '@/infra/http/observability';
 
-export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE" | "PUT";
+export type ApiMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE' | 'PUT';
 
 export type QueryValue = string | number | boolean | undefined;
 
@@ -47,16 +47,17 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 export class ApiClient {
   private readonly baseUrl: string;
   private readonly timeoutMs: number;
-  private readonly getAccessToken?: ApiClientConfig["getAccessToken"];
+  private readonly getAccessToken?: ApiClientConfig['getAccessToken'];
   private readonly refreshEndpoint: string;
   private readonly onUnauthorized?: () => void;
   private refreshPromise: Promise<boolean> | null = null;
 
   constructor(config: ApiClientConfig) {
-    this.baseUrl = config.baseUrl.replace(/\/+$/, "");
+    this.baseUrl = config.baseUrl.replace(/\/+$/, '');
     this.timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.getAccessToken = config.getAccessToken;
-    this.refreshEndpoint = config.refreshEndpoint ?? `${this.baseUrl}/auth/refresh`;
+    this.refreshEndpoint =
+      config.refreshEndpoint ?? `${this.baseUrl}/auth/refresh`;
     this.onUnauthorized = config.onUnauthorized;
   }
 
@@ -66,7 +67,7 @@ export class ApiClient {
     options?: ApiRequestOptions,
   ) {
     return this.request<TResponse>({
-      method: "GET",
+      method: 'GET',
       path,
       query,
       ...options,
@@ -79,7 +80,7 @@ export class ApiClient {
     options?: ApiRequestOptions,
   ) {
     return this.request<TResponse, TBody>({
-      method: "POST",
+      method: 'POST',
       path,
       body,
       ...options,
@@ -92,7 +93,7 @@ export class ApiClient {
     options?: ApiRequestOptions,
   ) {
     return this.request<TResponse, TBody>({
-      method: "PUT",
+      method: 'PUT',
       path,
       body,
       ...options,
@@ -105,7 +106,7 @@ export class ApiClient {
     options?: ApiRequestOptions,
   ) {
     return this.request<TResponse, TBody>({
-      method: "PATCH",
+      method: 'PATCH',
       path,
       body,
       ...options,
@@ -114,7 +115,7 @@ export class ApiClient {
 
   delete<TResponse>(path: string, options?: ApiRequestOptions) {
     return this.request<TResponse>({
-      method: "DELETE",
+      method: 'DELETE',
       path,
       ...options,
     });
@@ -161,9 +162,7 @@ export class ApiClient {
       return err(apiError);
     } catch (error) {
       const apiError =
-        error instanceof ApiError
-          ? error
-          : toNetworkError(error);
+        error instanceof ApiError ? error : toNetworkError(error);
 
       await logClientRequest({
         requestId,
@@ -187,8 +186,8 @@ export class ApiClient {
 
     return fetch(this.buildUrl(params.path, params.query), {
       method: params.method,
-      credentials: "include",
-      cache: "no-store",
+      credentials: 'include',
+      cache: 'no-store',
       headers,
       body: encodeBody(params.body),
       signal: mergeAbortSignals(
@@ -226,12 +225,16 @@ export class ApiClient {
     const headers = new Headers(extra);
     const token = this.getAccessToken ? await this.getAccessToken() : undefined;
 
-    if (token && !headers.has("Authorization")) {
-      headers.set("Authorization", `Bearer ${token}`);
+    if (token && !headers.has('Authorization')) {
+      headers.set('Authorization', `Bearer ${token}`);
     }
 
-    if (body !== undefined && !(body instanceof FormData) && !headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json");
+    if (
+      body !== undefined &&
+      !(body instanceof FormData) &&
+      !headers.has('Content-Type')
+    ) {
+      headers.set('Content-Type', 'application/json');
     }
 
     await forwardIncomingCookies(headers);
@@ -239,10 +242,7 @@ export class ApiClient {
     return headers;
   }
 
-  private buildUrl(
-    path: string,
-    query?: Record<string, QueryValue>,
-  ): string {
+  private buildUrl(path: string, query?: Record<string, QueryValue>): string {
     const url = new URL(`${this.baseUrl}${path}`);
 
     if (query) {
@@ -261,9 +261,9 @@ export class ApiClient {
     await forwardIncomingCookies(headers);
 
     const response = await fetch(this.refreshEndpoint, {
-      method: "POST",
-      credentials: "include",
-      cache: "no-store",
+      method: 'POST',
+      credentials: 'include',
+      cache: 'no-store',
       headers,
     });
 
@@ -283,28 +283,28 @@ export class ApiClient {
   }
 
   private isRefreshRequest(path: string): boolean {
-    const requestPathname = new URL(path, "http://local").pathname;
-    const refreshPathname = new URL(this.refreshEndpoint, "http://local")
+    const requestPathname = new URL(path, 'http://local').pathname;
+    const refreshPathname = new URL(this.refreshEndpoint, 'http://local')
       .pathname;
     return requestPathname === refreshPathname;
   }
 }
 
 async function forwardIncomingCookies(headers: Headers): Promise<void> {
-  if (typeof window !== "undefined" || headers.has("Cookie")) {
+  if (typeof window !== 'undefined' || headers.has('Cookie')) {
     return;
   }
 
   try {
-    const { cookies } = await import("next/headers");
+    const { cookies } = await import('next/headers');
     const store = await cookies();
     const cookie = store
       .getAll()
       .map((entry) => `${entry.name}=${entry.value}`)
-      .join("; ");
+      .join('; ');
 
     if (cookie) {
-      headers.set("Cookie", cookie);
+      headers.set('Cookie', cookie);
     }
   } catch {
     return;
@@ -316,7 +316,7 @@ function encodeBody(body: unknown): BodyInit | undefined {
     return undefined;
   }
 
-  if (body instanceof FormData || typeof body === "string") {
+  if (body instanceof FormData || typeof body === 'string') {
     return body;
   }
 
@@ -332,19 +332,19 @@ function mergeAbortSignals(
 }
 
 function toNetworkError(error: unknown): ApiError {
-  if (error instanceof DOMException && error.name === "TimeoutError") {
-    return new ApiError(0, "Request timed out", error);
+  if (error instanceof DOMException && error.name === 'TimeoutError') {
+    return new ApiError(0, 'Request timed out', error);
   }
 
-  if (error instanceof DOMException && error.name === "AbortError") {
-    return new ApiError(0, "Request aborted", error);
+  if (error instanceof DOMException && error.name === 'AbortError') {
+    return new ApiError(0, 'Request aborted', error);
   }
 
-  return new ApiError(0, "Network error", error);
+  return new ApiError(0, 'Network error', error);
 }
 
 function pathWithoutQuery(path: string): string {
-  return path.split("?")[0] ?? path;
+  return path.split('?')[0] ?? path;
 }
 
 function safeJsonParse(text: string): unknown {

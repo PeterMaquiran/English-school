@@ -7,7 +7,9 @@ loadEnv({ path: '.env' });
 
 const prisma = new PrismaClient();
 
-const email = (process.env.SEED_ADMIN_EMAIL ?? 'admin@school.local').toLowerCase();
+const email = (
+  process.env.SEED_ADMIN_EMAIL ?? 'admin@school.local'
+).toLowerCase();
 const password = process.env.SEED_ADMIN_PASSWORD ?? 'ChangeMe123!';
 const name = process.env.SEED_ADMIN_NAME ?? 'School Admin';
 

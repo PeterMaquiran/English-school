@@ -28,8 +28,9 @@ export class AuthCookieService {
   }
 
   private refreshOptions(): CookieOptions {
-    const refreshTtlSeconds =
-      this.config.getOrThrow<number>('jwt.refreshTtlSeconds');
+    const refreshTtlSeconds = this.config.getOrThrow<number>(
+      'jwt.refreshTtlSeconds',
+    );
     return {
       ...this.baseOptions(),
       maxAge: refreshTtlSeconds * 1000,

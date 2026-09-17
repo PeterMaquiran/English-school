@@ -6,14 +6,14 @@ Business events that trigger integrations: [business logic](../business-logic.md
 
 ## 1. Common rules
 
-| Rule | Detail |
-| ---- | ------ |
-| Secrets | Env via `apps/api` config (`configuration.ts`). Never `NEXT_PUBLIC_*` for secret keys. |
-| Timeouts | Outbound HTTP ≤ 10s; retries with backoff for 5xx and network errors only. |
-| Idempotency | Provider `Idempotency-Key` or our `dedupe_key` on notifications; payment webhook processed once per event id. |
-| Failure | Persist `failed` + error; do not block attendance if Zoom create fails — fall back to `zoom_personal_link` and alert Front Desk. |
-| PII | Send minimum fields (name, phone, email, amount). No CEFR or attendance in payment metadata beyond invoice id. |
-| School TZ | All “24 hours before class” calculations use school timezone, not UTC date lines. |
+| Rule        | Detail                                                                                                                           |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Secrets     | Env via `apps/api` config (`configuration.ts`). Never `NEXT_PUBLIC_*` for secret keys.                                           |
+| Timeouts    | Outbound HTTP ≤ 10s; retries with backoff for 5xx and network errors only.                                                       |
+| Idempotency | Provider `Idempotency-Key` or our `dedupe_key` on notifications; payment webhook processed once per event id.                    |
+| Failure     | Persist `failed` + error; do not block attendance if Zoom create fails — fall back to `zoom_personal_link` and alert Front Desk. |
+| PII         | Send minimum fields (name, phone, email, amount). No CEFR or attendance in payment metadata beyond invoice id.                   |
+| School TZ   | All “24 hours before class” calculations use school timezone, not UTC date lines.                                                |
 
 ## 2. Payment processing
 
@@ -21,13 +21,13 @@ Business events that trigger integrations: [business logic](../business-logic.md
 
 ### 2.1 Use cases
 
-| School event | Provider operation |
-| ------------ | ------------------ |
-| Student/parent pays `open` invoice | Create checkout session / order; redirect or hosted fields |
-| Front Desk records cash | No provider call; mark paid internally with method `offline` |
-| Webhook `payment_succeeded` | Set invoice `paid`, `external_payment_id`, apply enrollment/credits |
-| Webhook `payment_failed` | Leave `open`; optional notify |
-| Admin refund | Provider refund; on success, credit reversal per business logic |
+| School event                       | Provider operation                                                  |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| Student/parent pays `open` invoice | Create checkout session / order; redirect or hosted fields          |
+| Front Desk records cash            | No provider call; mark paid internally with method `offline`        |
+| Webhook `payment_succeeded`        | Set invoice `paid`, `external_payment_id`, apply enrollment/credits |
+| Webhook `payment_failed`           | Leave `open`; optional notify                                       |
+| Admin refund                       | Provider refund; on success, credit reversal per business logic     |
 
 ### 2.2 Data we send
 
@@ -60,12 +60,12 @@ Business events that trigger integrations: [business logic](../business-logic.md
 
 ### 3.1 Use cases
 
-| School event | Provider operation |
-| ------------ | ------------------ |
-| Remote `LessonSession` created | Create meeting; save `meeting_url`, `meeting_external_id` |
-| Session rescheduled | Update meeting time |
-| Session cancelled | Delete or cancel meeting |
-| Teacher has no API meeting | Copy `teachers.zoom_personal_link` onto the session and flag `using_personal_link` |
+| School event                   | Provider operation                                                                 |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| Remote `LessonSession` created | Create meeting; save `meeting_url`, `meeting_external_id`                          |
+| Session rescheduled            | Update meeting time                                                                |
+| Session cancelled              | Delete or cancel meeting                                                           |
+| Teacher has no API meeting     | Copy `teachers.zoom_personal_link` onto the session and flag `using_personal_link` |
 
 ### 3.2 Zoom (typical)
 
@@ -86,23 +86,23 @@ Web shows `meeting_url` to enrolled students, linked parents, assigned teacher, 
 
 Three channels; user `notification_preferences` picks allowed channels (default: email on, SMS/WhatsApp off until number verified).
 
-| Channel | Provider | Typical payload |
-| ------- | -------- | --------------- |
-| Email | SendGrid | Transactional template id, `to`, substitutions |
-| SMS | Twilio | E.164 `users.phone`, body ≤ 160 where possible |
-| WhatsApp | WhatsApp Business API (Cloud or BSP) | Pre-approved templates only |
+| Channel  | Provider                             | Typical payload                                |
+| -------- | ------------------------------------ | ---------------------------------------------- |
+| Email    | SendGrid                             | Transactional template id, `to`, substitutions |
+| SMS      | Twilio                               | E.164 `users.phone`, body ≤ 160 where possible |
+| WhatsApp | WhatsApp Business API (Cloud or BSP) | Pre-approved templates only                    |
 
 ### 4.1 Templates (keys)
 
-| `template_key` | When | Channels |
-| -------------- | ---- | -------- |
-| `session_reminder_24h` | 24h before `starts_at` | all |
-| `invoice_due_3d` | 3 days before `due_at` | email, sms |
-| `invoice_overdue` | daily while overdue, max 5 | email, sms |
-| `credits_low` | balance ≤ 2.0 hours | email |
-| `package_expiry_14d` | 14 days before expiry | email |
-| `batch_rescheduled` | batch time/room/teacher change | all |
-| `session_cancelled` | session cancelled | all |
+| `template_key`         | When                           | Channels   |
+| ---------------------- | ------------------------------ | ---------- |
+| `session_reminder_24h` | 24h before `starts_at`         | all        |
+| `invoice_due_3d`       | 3 days before `due_at`         | email, sms |
+| `invoice_overdue`      | daily while overdue, max 5     | email, sms |
+| `credits_low`          | balance ≤ 2.0 hours            | email      |
+| `package_expiry_14d`   | 14 days before expiry          | email      |
+| `batch_rescheduled`    | batch time/room/teacher change | all        |
+| `session_cancelled`    | session cancelled              | all        |
 
 ### 4.2 Idempotency
 
@@ -124,14 +124,14 @@ Honor provider STOP for SMS; store `sms_opt_out` on user. Do not send marketing.
 
 ## 5. Job orchestration
 
-| Job | Schedule | Side effects |
-| --- | -------- | ------------ |
-| Generate group sessions | On batch create/update | rows in `lesson_sessions` |
-| Create remote meetings | On remote session insert | Zoom/Meet |
-| Session reminders | Hourly | messaging |
-| Invoice overdue | Daily | status + messaging |
-| Attendance auto-absent | Hourly | attendance |
-| Package expiry | Daily | credit `expiry` tx |
+| Job                     | Schedule                 | Side effects              |
+| ----------------------- | ------------------------ | ------------------------- |
+| Generate group sessions | On batch create/update   | rows in `lesson_sessions` |
+| Create remote meetings  | On remote session insert | Zoom/Meet                 |
+| Session reminders       | Hourly                   | messaging                 |
+| Invoice overdue         | Daily                    | status + messaging        |
+| Attendance auto-absent  | Hourly                   | attendance                |
+| Package expiry          | Daily                    | credit `expiry` tx        |
 
 Use the existing Nest pattern: feature `*.processor.ts` + broker/queue under `infrastructure` when jobs are added.
 

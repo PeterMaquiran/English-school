@@ -15,13 +15,13 @@ Operate an English language school that:
 
 ## 2. Actors and identities
 
-| Actor | Identity | Notes |
-| ----- | -------- | ----- |
-| Admin / Director | `User` with role `admin` | School-wide operations and finance |
-| Front Desk / Sales | `User` with role `front_desk` | Onboarding, placement, enrollment, collections |
-| Teacher | `User` + `Teacher` profile | Schedule, attendance, homework, evaluations |
-| Student | `User` + `Student` profile | Own calendar, credits, certificates, invoices |
-| Parent / Guardian | `User` with role `parent`, linked to one or more students | Same student-facing permissions on linked children |
+| Actor              | Identity                                                  | Notes                                              |
+| ------------------ | --------------------------------------------------------- | -------------------------------------------------- |
+| Admin / Director   | `User` with role `admin`                                  | School-wide operations and finance                 |
+| Front Desk / Sales | `User` with role `front_desk`                             | Onboarding, placement, enrollment, collections     |
+| Teacher            | `User` + `Teacher` profile                                | Schedule, attendance, homework, evaluations        |
+| Student            | `User` + `Student` profile                                | Own calendar, credits, certificates, invoices      |
+| Parent / Guardian  | `User` with role `parent`, linked to one or more students | Same student-facing permissions on linked children |
 
 A person may have only one **login role** at a time. A teacher who is also a student needs two user accounts **[Decision: no dual-role accounts]**.
 
@@ -85,13 +85,13 @@ Every change appends `StudentLevelHistory` (from, to, source, actor, timestamp).
 
 `lesson_credits_remaining` is a cached balance. The source of truth is `CreditTransaction`:
 
-| Type | Effect |
-| ---- | ------ |
-| `purchase` | + hours from a paid invoice |
-| `lesson_consumed` | − duration of a completed private lesson |
-| `cancellation_forfeit` | − hours when late cancel rules apply |
-| `adjustment` | Admin/Front Desk correction (reason required) |
-| `expiry` | − remaining hours when a package expires |
+| Type                   | Effect                                        |
+| ---------------------- | --------------------------------------------- |
+| `purchase`             | + hours from a paid invoice                   |
+| `lesson_consumed`      | − duration of a completed private lesson      |
+| `cancellation_forfeit` | − hours when late cancel rules apply          |
+| `adjustment`           | Admin/Front Desk correction (reason required) |
+| `expiry`               | − remaining hours when a package expires      |
 
 Credits never go below zero. Booking a private lesson is rejected if remaining credits < session duration.
 
@@ -178,12 +178,12 @@ Completing an enrollment does not auto-change CEFR; that still follows §3.3.
 
 Applies to **scheduled sessions** (group and private). School-wide holidays are cancellations initiated by Admin (no student penalty).
 
-| Initiator | Notice before start | Group | Private |
-| --------- | ------------------- | ----- | ------- |
-| School / teacher | Any | Session cancelled or substitute; no student fee | Session cancelled; credits not consumed |
-| Student / parent | ≥ 24 hours **[Decision]** | Front Desk may move to another batch if seat exists; no refund of group tuition in v1 | Credits returned to balance (session not consumed) |
-| Student / parent | < 24 hours | Marked absent unless Admin excuses | `cancellation_forfeit`: credits consumed as if taught |
-| No-show | — | `absent` | Same as late cancel: forfeit credits |
+| Initiator        | Notice before start       | Group                                                                                 | Private                                               |
+| ---------------- | ------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| School / teacher | Any                       | Session cancelled or substitute; no student fee                                       | Session cancelled; credits not consumed               |
+| Student / parent | ≥ 24 hours **[Decision]** | Front Desk may move to another batch if seat exists; no refund of group tuition in v1 | Credits returned to balance (session not consumed)    |
+| Student / parent | < 24 hours                | Marked absent unless Admin excuses                                                    | `cancellation_forfeit`: credits consumed as if taught |
+| No-show          | —                         | `absent`                                                                              | Same as late cancel: forfeit credits                  |
 
 Reschedule (student-initiated, private, ≥ 24 hours): cancel original without forfeit, book a new slot if teacher available and credits sufficient (credits unchanged until the new session completes).
 
@@ -218,13 +218,13 @@ Refunds: Admin only; reverse credits if unused; do not auto-unenroll completed a
 
 Jobs (not user-triggered):
 
-| Event | Channel (see integrations) | Recipients |
-| ----- | -------------------------- | ---------- |
-| Session in 24 hours | WhatsApp / SMS / email per preference | Student, parent, teacher |
-| Invoice 3 days before due | email + SMS | Student, parent |
-| Invoice overdue daily (cap 5) | email + SMS | Student, parent |
-| Credits remaining ≤ 2 hours | email | Student, parent |
-| Package expiry 14 days prior | email | Student, parent |
+| Event                         | Channel (see integrations)            | Recipients               |
+| ----------------------------- | ------------------------------------- | ------------------------ |
+| Session in 24 hours           | WhatsApp / SMS / email per preference | Student, parent, teacher |
+| Invoice 3 days before due     | email + SMS                           | Student, parent          |
+| Invoice overdue daily (cap 5) | email + SMS                           | Student, parent          |
+| Credits remaining ≤ 2 hours   | email                                 | Student, parent          |
+| Package expiry 14 days prior  | email                                 | Student, parent          |
 
 Do not send after opt-out. Teachers are not billed; they only get session reminders.
 
@@ -271,10 +271,10 @@ Do not send after opt-out. Teachers are not billed; they only get session remind
 
 ## 13. Traceability
 
-| Business area | SRS | Schema | RBAC | Integrations |
-| ------------- | --- | ------ | ---- | ------------ |
-| CEFR & placement | FR-1 | students, placement_tests, student_level_history | Front Desk write, Teacher read | — |
-| Packages & credits | FR-2 | invoices, credit_transactions, students | Front Desk, Student read | Payments |
-| Teacher allocation | FR-3 | teachers, availabilities, batches, lesson_sessions | Admin/Front Desk assign | Zoom / Meet |
-| Attendance & reports | FR-4 | attendance, progress_reports, certificates, homework | Teacher write | — |
-| Billing & reminders | FR-5 | invoices, notification_logs | Front Desk collect, Admin refund | Stripe/PayPal, WhatsApp, Twilio, SendGrid |
+| Business area        | SRS  | Schema                                               | RBAC                             | Integrations                              |
+| -------------------- | ---- | ---------------------------------------------------- | -------------------------------- | ----------------------------------------- |
+| CEFR & placement     | FR-1 | students, placement_tests, student_level_history     | Front Desk write, Teacher read   | —                                         |
+| Packages & credits   | FR-2 | invoices, credit_transactions, students              | Front Desk, Student read         | Payments                                  |
+| Teacher allocation   | FR-3 | teachers, availabilities, batches, lesson_sessions   | Admin/Front Desk assign          | Zoom / Meet                               |
+| Attendance & reports | FR-4 | attendance, progress_reports, certificates, homework | Teacher write                    | —                                         |
+| Billing & reminders  | FR-5 | invoices, notification_logs                          | Front Desk collect, Admin refund | Stripe/PayPal, WhatsApp, Twilio, SendGrid |

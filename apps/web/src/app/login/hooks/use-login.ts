@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useCallback, useState } from "react";
-import { authRepository, type LoginInput } from "@/module/auth";
-import { getApiErrorMessage } from "@/utils/api-error-message";
+import { useCallback, useState } from 'react';
+import { authRepository, type LoginInput } from '@/module/auth';
+import { getApiErrorMessage } from '@/utils/api-error-message';
 
 export function useLogin() {
   const [pending, setPending] = useState(false);

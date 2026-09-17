@@ -1,20 +1,20 @@
-"use client";
+'use client';
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useLogin } from "../hooks/use-login";
+import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useLogin } from '../hooks/use-login';
 
 export function LoginForm() {
   const router = useRouter();
   const { submit, pending, error } = useLogin();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const user = await submit({ email, password });
     if (user) {
-      router.push("/dashboard");
+      router.push('/dashboard');
       router.refresh();
     }
   }
@@ -55,7 +55,7 @@ export function LoginForm() {
         disabled={pending}
         className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
       >
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
   );

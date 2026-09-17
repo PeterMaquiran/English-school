@@ -1,18 +1,18 @@
-import { context, propagation } from "@opentelemetry/api";
+import { context, propagation } from '@opentelemetry/api';
 
-const REQUEST_ID_HEADER = "x-request-id";
+const REQUEST_ID_HEADER = 'x-request-id';
 
 export function createRequestId(): string {
   return crypto.randomUUID();
 }
 
 export async function incomingRequestId(): Promise<string | undefined> {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return undefined;
   }
 
   try {
-    const { headers } = await import("next/headers");
+    const { headers } = await import('next/headers');
     return (await headers()).get(REQUEST_ID_HEADER) ?? undefined;
   } catch {
     return undefined;
@@ -25,7 +25,7 @@ export function applyObservabilityHeaders(
 ): void {
   headers.set(REQUEST_ID_HEADER, requestId);
 
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return;
   }
 
@@ -44,20 +44,20 @@ export async function logClientRequest(fields: {
   durationMs: number;
   error?: unknown;
 }): Promise<void> {
-  if (typeof window !== "undefined") {
+  if (typeof window !== 'undefined') {
     return;
   }
 
-  const { logger } = await import("../../../logger");
+  const { logger } = await import('../../../logger');
   const payload = {
-    event: "http.client.request",
+    event: 'http.client.request',
     requestId: fields.requestId,
     http: {
       method: fields.method,
       path: fields.path,
       status: fields.status,
       durationMs: Math.round(fields.durationMs),
-      target: "api",
+      target: 'api',
     },
     err: fields.error,
   };

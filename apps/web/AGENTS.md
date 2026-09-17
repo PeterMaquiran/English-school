@@ -61,23 +61,23 @@ A route owns its screen. Put `LoginForm` next to `/login`, not in a global `comp
 
 ## Where new code goes
 
-| Kind of change | Put it here |
-| -------------- | ----------- |
-| REST resource | `src/module/{entity}/data/{entity}.repository.ts` + `dtos.ts` |
-| Wired singleton | `src/module/{entity}/{entity}-module.ts` (`new XRepository(apiClient)`) |
-| Barrel | `src/module/{entity}/index.ts` and `src/module/{entity}/data/index.ts` |
-| Multi-step or validated write | `src/module/{entity}/use-case/{kebab-name}.ts` — skip this folder if the call is a 1:1 repository wrap |
-| Shared client hook (2+ routes) | `src/shared/hooks/use-{kebab-name}.ts` (`'use client'` if it uses React state) |
-| Page-only client hook | `src/app/{segment}/hooks/use-{kebab-name}.ts` |
-| Route (URL) | `src/app/{segment}/page.tsx` (+ `layout.tsx` when the segment needs a shell) |
-| Page-only UI | `src/app/{segment}/components/` — PascalCase files |
-| Shared UI (2+ routes) | `src/components/` — PascalCase files |
-| Shared helper | `src/utils/` |
-| HTTP client | `src/infra/http/` only |
-| Env / API base URL | `src/infra/http` + `NEXT_PUBLIC_API_URL` (Nest on port 3001) |
-| Server Action (thin) | next to the use-case or `src/module/{entity}/actions/` — must only call a use-case or repository |
-| Integration test | `src/test/{kebab-name}.test.ts` |
-| Playwright | `e2e/*.spec.ts` + `e2e/helpers.ts` |
+| Kind of change                 | Put it here                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| REST resource                  | `src/module/{entity}/data/{entity}.repository.ts` + `dtos.ts`                                          |
+| Wired singleton                | `src/module/{entity}/{entity}-module.ts` (`new XRepository(apiClient)`)                                |
+| Barrel                         | `src/module/{entity}/index.ts` and `src/module/{entity}/data/index.ts`                                 |
+| Multi-step or validated write  | `src/module/{entity}/use-case/{kebab-name}.ts` — skip this folder if the call is a 1:1 repository wrap |
+| Shared client hook (2+ routes) | `src/shared/hooks/use-{kebab-name}.ts` (`'use client'` if it uses React state)                         |
+| Page-only client hook          | `src/app/{segment}/hooks/use-{kebab-name}.ts`                                                          |
+| Route (URL)                    | `src/app/{segment}/page.tsx` (+ `layout.tsx` when the segment needs a shell)                           |
+| Page-only UI                   | `src/app/{segment}/components/` — PascalCase files                                                     |
+| Shared UI (2+ routes)          | `src/components/` — PascalCase files                                                                   |
+| Shared helper                  | `src/utils/`                                                                                           |
+| HTTP client                    | `src/infra/http/` only                                                                                 |
+| Env / API base URL             | `src/infra/http` + `NEXT_PUBLIC_API_URL` (Nest on port 3001)                                           |
+| Server Action (thin)           | next to the use-case or `src/module/{entity}/actions/` — must only call a use-case or repository       |
+| Integration test               | `src/test/{kebab-name}.test.ts`                                                                        |
+| Playwright                     | `e2e/*.spec.ts` + `e2e/helpers.ts`                                                                     |
 
 Do not add empty placeholder packages (`src/core`, `src/libs`, fake `database` / `socket` folders). Create a layer when the first real file needs it.
 
@@ -99,8 +99,8 @@ module/<entity>/
 Typical wiring:
 
 ```typescript
-import { apiClient } from "@/infra/http";
-import { ArticlesRepository } from "./data/articles.repository";
+import { apiClient } from '@/infra/http';
+import { ArticlesRepository } from './data/articles.repository';
 
 export const articlesRepository = new ArticlesRepository(apiClient);
 ```

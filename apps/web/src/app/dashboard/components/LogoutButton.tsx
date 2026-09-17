@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { authRepository } from "@/module/auth";
-import { getApiErrorMessage } from "@/utils/api-error-message";
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { authRepository } from '@/module/auth';
+import { getApiErrorMessage } from '@/utils/api-error-message';
 
 export function LogoutButton() {
   const router = useRouter();
@@ -21,7 +21,7 @@ export function LogoutButton() {
       return;
     }
 
-    router.push("/login");
+    router.push('/login');
     router.refresh();
   }
 
@@ -33,7 +33,7 @@ export function LogoutButton() {
         disabled={pending}
         className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium disabled:opacity-60 dark:border-zinc-700"
       >
-        {pending ? "Signing out…" : "Sign out"}
+        {pending ? 'Signing out…' : 'Sign out'}
       </button>
       {error ? (
         <p className="text-sm text-red-600 dark:text-red-400" role="alert">
