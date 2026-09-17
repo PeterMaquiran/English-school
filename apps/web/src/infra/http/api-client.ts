@@ -56,7 +56,7 @@ export class ApiClient {
     this.baseUrl = config.baseUrl.replace(/\/+$/, "");
     this.timeoutMs = config.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.getAccessToken = config.getAccessToken;
-    this.refreshEndpoint = config.refreshEndpoint ?? "/api/auth/refresh";
+    this.refreshEndpoint = config.refreshEndpoint ?? `${this.baseUrl}/auth/refresh`;
     this.onUnauthorized = config.onUnauthorized;
   }
 
@@ -234,6 +234,8 @@ export class ApiClient {
       headers.set("Content-Type", "application/json");
     }
 
+    await forwardIncomingCookies(headers);
+
     return headers;
   }
 
@@ -255,10 +257,14 @@ export class ApiClient {
   }
 
   private async tryRefreshToken(): Promise<boolean> {
+    const headers = new Headers();
+    await forwardIncomingCookies(headers);
+
     const response = await fetch(this.refreshEndpoint, {
       method: "POST",
       credentials: "include",
       cache: "no-store",
+      headers,
     });
 
     return response.ok;
@@ -281,6 +287,27 @@ export class ApiClient {
     const refreshPathname = new URL(this.refreshEndpoint, "http://local")
       .pathname;
     return requestPathname === refreshPathname;
+  }
+}
+
+async function forwardIncomingCookies(headers: Headers): Promise<void> {
+  if (typeof window !== "undefined" || headers.has("Cookie")) {
+    return;
+  }
+
+  try {
+    const { cookies } = await import("next/headers");
+    const store = await cookies();
+    const cookie = store
+      .getAll()
+      .map((entry) => `${entry.name}=${entry.value}`)
+      .join("; ");
+
+    if (cookie) {
+      headers.set("Cookie", cookie);
+    }
+  } catch {
+    return;
   }
 }
 

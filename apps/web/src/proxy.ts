@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { logger } from "./logger";
+import { logger } from "../logger";
+import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/utils/auth-cookies";
 
 function getClientIp(request: NextRequest): string | undefined {
   return (
@@ -10,6 +11,8 @@ function getClientIp(request: NextRequest): string | undefined {
     undefined
   );
 }
+
+const PUBLIC_PATHS = new Set(["/", "/login"]);
 
 export function proxy(request: NextRequest) {
   const incomingRequestId = request.headers.get("x-request-id");
@@ -34,6 +37,29 @@ export function proxy(request: NextRequest) {
     },
     `${request.method} ${request.nextUrl.pathname} received`,
   );
+
+  const path = request.nextUrl.pathname;
+  const hasSession =
+    Boolean(request.cookies.get(ACCESS_COOKIE)?.value) ||
+    Boolean(request.cookies.get(REFRESH_COOKIE)?.value);
+
+  if (path.startsWith("/dashboard") && !hasSession) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    const redirect = NextResponse.redirect(loginUrl);
+    redirect.headers.set("x-request-id", requestId);
+    return redirect;
+  }
+
+  if (PUBLIC_PATHS.has(path) && hasSession && path === "/login") {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.search = "";
+    const redirect = NextResponse.redirect(dashboardUrl);
+    redirect.headers.set("x-request-id", requestId);
+    return redirect;
+  }
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },

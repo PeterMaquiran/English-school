@@ -1,8 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import configuration from './config/configuration.js';
+import { AuthModule } from './module/auth/auth.module.js';
+import { UsersModule } from './module/users/users.module.js';
+import { PrismaModule } from './shared/prisma/prisma.module.js';
 
 function pathWithoutQuery(url?: string): string {
   return url?.split('?')[0] ?? '/';
@@ -10,6 +15,14 @@ function pathWithoutQuery(url?: string): string {
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: ['.env.local', '.env'],
+    }),
+    PrismaModule,
+    UsersModule,
+    AuthModule,
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',

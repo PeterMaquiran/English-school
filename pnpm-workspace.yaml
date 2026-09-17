@@ -2,5 +2,10 @@ packages:
   - "apps/*"
   - "packages/*"
 allowBuilds:
+  "@prisma/client": true
+  prisma: true
+  esbuild: true
   protobufjs: true
   unrs-resolver: true
+  sharp: false
+  "@prisma/engines": true
