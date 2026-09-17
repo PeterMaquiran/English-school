@@ -1,3 +1,4 @@
+import './config/load-env.js';
 import './shared/utils/tracing.js';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
