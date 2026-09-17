@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { authRepository, type LoginInput } from "@/module/auth";
 import { getApiErrorMessage } from "@/utils/api-error-message";
-import type { LoginInput } from "../data/dtos";
-import { login } from "../use-case/login";
 
 export function useLogin() {
   const [pending, setPending] = useState(false);
@@ -13,7 +12,7 @@ export function useLogin() {
     setPending(true);
     setError(null);
 
-    const result = await login(input);
+    const result = await authRepository.login(input);
 
     setPending(false);
 

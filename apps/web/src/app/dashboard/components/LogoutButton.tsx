@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { logout } from "@/module/auth";
+import { authRepository } from "@/module/auth";
 import { getApiErrorMessage } from "@/utils/api-error-message";
 
 export function LogoutButton() {
@@ -13,7 +13,7 @@ export function LogoutButton() {
   async function onClick() {
     setPending(true);
     setError(null);
-    const result = await logout();
+    const result = await authRepository.logout();
     setPending(false);
 
     if (result.isErr()) {

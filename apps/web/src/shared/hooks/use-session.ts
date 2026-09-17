@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { AuthUser } from "../data/dtos";
-import { getSession } from "../use-case/get-session";
+import { authRepository, type AuthUser } from "@/module/auth";
 
 type SessionState =
   | { status: "loading"; user: null }
@@ -18,7 +17,7 @@ export function useSession() {
   useEffect(() => {
     let cancelled = false;
 
-    void getSession().then((result) => {
+    void authRepository.me().then((result) => {
       if (cancelled) {
         return;
       }

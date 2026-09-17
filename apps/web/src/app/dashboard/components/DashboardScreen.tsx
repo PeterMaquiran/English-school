@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useSession } from "@/module/auth";
-import { LogoutButton } from "@/components/auth/LogoutButton";
+import { useSession } from "@/shared/hooks";
+import { LogoutButton } from "./LogoutButton";
 
 export function DashboardScreen() {
   const router = useRouter();

@@ -22,22 +22,23 @@ When the first real feature lands, move the current package-root `app/` into `sr
 
 ## Non-negotiables
 
-1. **Layers stay separate.** `src/app` is routing only (layouts, `page.tsx`, `loading.tsx`, `error.tsx`, metadata). `src/components` renders UI and calls hooks. `src/module` owns API types, repositories, use-cases, and client hooks. `src/infra` owns HTTP. `src/utils` is shared pure helpers. Do not collapse these.
-2. **One HTTP verb = one repository method.** Multi-step flows belong in `use-case/`, not in components, pages, or repositories.
+1. **Layers stay separate.** `src/app` owns routes plus **page-local** UI and hooks. `src/components` is **shared** UI only. `src/shared/hooks` is **shared** client hooks. `src/module` owns API types and repositories (and `use-case/` only when there is real business logic). `src/infra` owns HTTP. `src/utils` is shared pure helpers. Do not collapse these.
+2. **One HTTP verb = one repository method.** Call the repository from pages/hooks when the call is a straight pass-through. Add `use-case/` only for multi-step or validated flows.
 3. **API results are `Result<ApiSuccess<T>, ApiError>` (neverthrow).** Check `isErr()` and return/propagate. Do not `try/catch` fetch. Surface errors in UI with `getApiErrorMessage`.
-4. **Pages are thin.** A `page.tsx` composes components and calls a use-case (Server Component) or a hook (Client Component). No inline `fetch`, no DTO mapping in JSX.
+4. **Pages are thin.** A `page.tsx` composes components and calls a repository (or a use-case when one exists). Client Components use a page-local or shared hook. No inline `fetch`, no DTO mapping in JSX.
 5. **`'use client'` is opt-in.** Default to Server Components. Add `'use client'` only for event handlers, browser APIs, or client hooks. Do not mark a whole route tree client unless required.
 6. **Do not re-implement the Nest API in Next.** No `src/app/api/**` route handlers that proxy CRUD unless there is a real BFF need (httpOnly cookies, image/auth bridging). Call `apps/api` through `src/infra/http`.
 7. **Path alias `@/`** → `src/`. Do not use deep relative imports across layers (`../../../infra`).
-8. **Copy the nearest sibling.** New REST resource → look at an existing `src/module/{entity}`. New screen → look at an existing `src/app/{route}/page.tsx`. New client hook → look at `src/module/{entity}/hooks`.
+8. **Copy the nearest sibling.** New REST resource → look at an existing `src/module/{entity}`. New screen → look at an existing `src/app/{route}/` (page + colocated `components/` / `hooks/`). Shared client hook → `src/shared/hooks`. Page-only hook → `src/app/{route}/hooks`.
 
 ## `src/` tree
 
 ```
 src/
-  app/                    # App Router: route segments only
-  components/             # shared and feature UI (no fetch)
-  module/                 # per-entity API + orchestration
+  app/                    # routes + page-local components/hooks
+  components/             # shared UI only (used by 2+ routes)
+  shared/hooks/           # shared client hooks (used by 2+ routes)
+  module/                 # per-entity API (repository + dtos)
   infra/                  # HTTP client (and only I/O adapters)
   utils/                  # pure helpers
 ```
@@ -48,13 +49,15 @@ src/app/
   page.tsx                # /
   globals.css
   {segment}/
-    page.tsx              # the route
+    page.tsx              # the route (thin: compose local UI)
     layout.tsx            # optional nested layout
     loading.tsx           # optional
     error.tsx             # optional
+    components/           # UI used only by this route
+    hooks/                # client hooks used only by this route
 ```
 
-Route-only files stay in `app/`. Visual building blocks go in `src/components`, not in a parallel `pages/` or `routes/` folder (that was the Vite app).
+A route owns its screen. Put `LoginForm` next to `/login`, not in a global `components/auth` folder. Move a component to `src/components` or a hook to `src/shared/hooks` only when a second route needs it.
 
 ## Where new code goes
 
@@ -63,14 +66,16 @@ Route-only files stay in `app/`. Visual building blocks go in `src/components`, 
 | REST resource | `src/module/{entity}/data/{entity}.repository.ts` + `dtos.ts` |
 | Wired singleton | `src/module/{entity}/{entity}-module.ts` (`new XRepository(apiClient)`) |
 | Barrel | `src/module/{entity}/index.ts` and `src/module/{entity}/data/index.ts` |
-| Multi-step or validated write | `src/module/{entity}/use-case/{kebab-name}.ts` |
-| Client data hook | `src/module/{entity}/hooks/use-{kebab-name}.ts` (`'use client'` if it uses React state) |
+| Multi-step or validated write | `src/module/{entity}/use-case/{kebab-name}.ts` — skip this folder if the call is a 1:1 repository wrap |
+| Shared client hook (2+ routes) | `src/shared/hooks/use-{kebab-name}.ts` (`'use client'` if it uses React state) |
+| Page-only client hook | `src/app/{segment}/hooks/use-{kebab-name}.ts` |
 | Route (URL) | `src/app/{segment}/page.tsx` (+ `layout.tsx` when the segment needs a shell) |
-| Feature UI | `src/components/{entity}/` — PascalCase component files |
+| Page-only UI | `src/app/{segment}/components/` — PascalCase files |
+| Shared UI (2+ routes) | `src/components/` — PascalCase files |
 | Shared helper | `src/utils/` |
 | HTTP client | `src/infra/http/` only |
 | Env / API base URL | `src/infra/http` + `NEXT_PUBLIC_API_URL` (Nest on port 3001) |
-| Server Action (thin) | next to the use-case or `src/module/{entity}/actions/` — must only call a use-case |
+| Server Action (thin) | next to the use-case or `src/module/{entity}/actions/` — must only call a use-case or repository |
 | Integration test | `src/test/{kebab-name}.test.ts` |
 | Playwright | `e2e/*.spec.ts` + `e2e/helpers.ts` |
 
@@ -88,8 +93,7 @@ module/<entity>/
     <entity>.repository.ts
     dtos.ts
     index.ts
-  use-case/               # optional; kebab-case files
-  hooks/                  # optional; client hooks only
+  use-case/               # optional; only when there is business logic
 ```
 
 Typical wiring:
@@ -101,7 +105,7 @@ import { ArticlesRepository } from "./data/articles.repository";
 export const articlesRepository = new ArticlesRepository(apiClient);
 ```
 
-Server Components import the use-case or repository singleton and `await` it. Client Components import a hook that calls the same use-case. Do not duplicate HTTP in both places.
+Server Components import the repository singleton (or a use-case when one exists) and `await` it. Client Components import a page-local hook or `src/shared/hooks`. Do not duplicate HTTP in both places. Do not put hooks inside `src/module`.
 
 ## Naming
 
@@ -116,7 +120,7 @@ Server Components import the use-case or repository singleton and `await` it. Cl
 
 - Use `next/link` and `next/navigation` (`useRouter`, `usePathname`, `redirect`). Never `react-router`.
 - Use `next/image` for images served from known hosts (configure `images.remotePatterns` in `next.config.ts`).
-- Colocate route-specific loaders/errors with the segment; keep generic chrome in `src/components`.
+- Colocate route-specific loaders, errors, components, and hooks with the segment; keep generic chrome in `src/components`.
 - Providers (auth, theme, query) wrap children in `src/app/layout.tsx` via a small client `Providers` component — do not make the root layout a Client Component.
 
 ## Config, HTTP, auth
@@ -127,9 +131,9 @@ Server Components import the use-case or repository singleton and `await` it. Cl
 
 ## Adding a new screen + API resource (checklist)
 
-1. Add or reuse `src/module/<entity>/` (repository, dtos, module singleton). Put multi-step writes in `use-case/`.
-2. Add `src/app/<segment>/page.tsx` that only composes UI and calls the use-case/hook.
-3. Put presentational pieces in `src/components/<entity>/`.
+1. Add or reuse `src/module/<entity>/` (repository, dtos, module singleton). Add `use-case/` only when the flow is more than a repository call.
+2. Add `src/app/<segment>/page.tsx` that only composes UI and calls the repository/hook.
+3. Put that screen’s UI in `src/app/<segment>/components/` and page-only hooks in `src/app/<segment>/hooks/`. Use `src/components/` only for UI shared by more than one route.
 4. Guard private screens the same way as existing ones (auth module + layout or page-level check). Do not invent a second auth path.
 5. Keep object-storage URLs / third-party HTTP in `src/infra` or call the Nest API — not inside a component.
 
