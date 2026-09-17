@@ -1,5 +1,5 @@
 import { configureZenTrace } from 'zentrace';
-import { enableZipkinExport } from '@/infra/observability/zipkin-exporter';
+import { enableZipkinExport } from 'zentrace/exporters/zipkin';
 
 const ZIPKIN_URL =
   process.env.NEXT_PUBLIC_ZIPKIN_URL ?? 'http://zipkin:9411/api/v2/spans';
