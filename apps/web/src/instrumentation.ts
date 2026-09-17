@@ -2,7 +2,7 @@ import type { Instrumentation } from 'next';
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { startTelemetry } = await import('./telemetry');
+    const { startTelemetry } = await import('@/infra/observability/telemetry');
     startTelemetry();
   }
 }
@@ -12,7 +12,7 @@ export const onRequestError: Instrumentation.onRequestError = async (
   request,
   context,
 ) => {
-  const { logger } = await import('./logger');
+  const { logger } = await import('@/infra/observability/logger');
   const requestIdHeader = request.headers['x-request-id'];
   const requestId = Array.isArray(requestIdHeader)
     ? requestIdHeader[0]

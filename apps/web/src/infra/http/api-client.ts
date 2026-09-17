@@ -1,7 +1,9 @@
 import { err, ok, type Result } from 'neverthrow';
+import type { Span } from 'zentrace';
 import { ApiError } from '@/infra/http/api-error';
 import {
   applyObservabilityHeaders,
+  applySpanCorrelationHeaders,
   createRequestId,
   incomingRequestId,
   logClientRequest,
@@ -29,6 +31,10 @@ export type ApiRequestOptions = {
   headers?: HeadersInit;
   signal?: AbortSignal;
   timeoutMs?: number;
+  // Pass the caller's span explicitly. zentrace keeps its active span in a
+  // process-global stack rather than AsyncLocalStorage, so reading it here would
+  // pick up whichever span a concurrent request pushed last.
+  span?: Span;
 };
 
 type RequestParams<TBody> = {
@@ -39,6 +45,7 @@ type RequestParams<TBody> = {
   headers?: HeadersInit;
   signal?: AbortSignal;
   timeoutMs?: number;
+  span?: Span;
   _retryUnauthorized?: boolean;
 };
 
@@ -183,6 +190,7 @@ export class ApiClient {
   ): Promise<Response> {
     const headers = await this.buildHeaders(params.headers, params.body);
     applyObservabilityHeaders(headers, requestId);
+    applySpanCorrelationHeaders(headers, params.span);
 
     return fetch(this.buildUrl(params.path, params.query), {
       method: params.method,

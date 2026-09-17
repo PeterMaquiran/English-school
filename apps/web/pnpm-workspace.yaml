@@ -2,3 +2,5 @@ allowBuilds:
   protobufjs: true
   sharp: false
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - zentrace@0.0.3

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { logger } from '../logger';
+import { logger } from '@/infra/observability/logger';
 import { ACCESS_COOKIE, REFRESH_COOKIE } from '@/utils/auth-cookies';
 
 function getClientIp(request: NextRequest): string | undefined {

@@ -9,3 +9,5 @@ allowBuilds:
   unrs-resolver: true
   sharp: false
   '@prisma/engines': true
+minimumReleaseAgeExclude:
+  - zentrace@0.0.3

@@ -22,7 +22,8 @@
     "next": "16.3.5",
     "pino": "^10.3.1",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zentrace": "^0.0.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

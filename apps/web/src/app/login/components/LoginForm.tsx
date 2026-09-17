@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { traceFn, type Span } from 'zentrace';
 import { useLogin } from '../hooks/use-login';
 
 export function LoginForm() {
@@ -10,14 +11,21 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const user = await submit({ email, password });
-    if (user) {
-      router.push('/dashboard');
-      router.refresh();
-    }
-  }
+  const onSubmit = traceFn(
+    async (event: FormEvent<HTMLFormElement>, span?: Span) => {
+      event.preventDefault();
+      span?.console.log('submitting login', { email });
+
+      const user = await submit({ email, password }, span);
+
+      if (user) {
+        span?.console.info('login succeeded', { userId: user.id });
+        router.push('/dashboard');
+        router.refresh();
+      }
+    },
+    { name: 'LoginForm.onSubmit', module: 'auth', captureArgs: false },
+  );
 
   return (
     <form onSubmit={onSubmit} className="flex w-full max-w-sm flex-col gap-4">

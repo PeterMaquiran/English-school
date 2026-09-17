@@ -225,6 +225,9 @@ importers:
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+      zentrace:
+        specifier: ^0.0.3
+        version: 0.0.3
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -4744,6 +4747,9 @@ packages:
   yoctocolors@2.2.0:
     resolution: {integrity: sha512-xYqdZFUK/VYazNl/oCDYN+3WloWQwMfZxBoiNt6qNyk+xfOdi598muWE42rNZFp1kNOiqW936q5RhUdnpqElSg==}
     engines: {node: '>=18'}
+
+  zentrace@0.0.3:
+    resolution: {integrity: sha512-Wm28ZvG4208YHNBK23XBF6cTwo4djwAx3JygaM/TsiE1v7Qc2DR85bN3YnMs/sT3Vcck3Wt2zK3BFAJxphpD+Q==}
 
   zod-validation-error@4.0.2:
     resolution: {integrity: sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ==}
@@ -9329,6 +9335,8 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yoctocolors@2.2.0: {}
+
+  zentrace@0.0.3: {}
 
   zod-validation-error@4.0.2(zod@4.6.5):
     dependencies:

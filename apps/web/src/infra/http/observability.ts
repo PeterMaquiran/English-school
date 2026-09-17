@@ -1,4 +1,5 @@
 import { context, propagation } from '@opentelemetry/api';
+import type { Span } from 'zentrace';
 
 const REQUEST_ID_HEADER = 'x-request-id';
 
@@ -36,6 +37,34 @@ export function applyObservabilityHeaders(
   });
 }
 
+export function applySpanCorrelationHeaders(
+  headers: Headers,
+  span: Span | undefined,
+): void {
+  if (!span) {
+    return;
+  }
+
+  // The browser registers a Zipkin exporter, so `traceparent` can parent the API
+  // span. No exporter runs server-side; there OTel stays the wire format.
+  if (typeof window !== 'undefined') {
+    for (const [key, value] of Object.entries(span.getTraceHeaders())) {
+      if (value) {
+        headers.set(key, value);
+      }
+    }
+    headers.set('x-zentrace-parent-span-id', span.context.spanId);
+    return;
+  }
+
+  headers.set('x-trace-id', span.context.traceId);
+  headers.set('x-span-id', span.context.spanId);
+
+  if (span.context.parentId) {
+    headers.set('x-parent-id', span.context.parentId);
+  }
+}
+
 export async function logClientRequest(fields: {
   requestId: string;
   method: string;
@@ -48,7 +77,7 @@ export async function logClientRequest(fields: {
     return;
   }
 
-  const { logger } = await import('../../../logger');
+  const { logger } = await import('@/infra/observability/logger');
   const payload = {
     event: 'http.client.request',
     requestId: fields.requestId,

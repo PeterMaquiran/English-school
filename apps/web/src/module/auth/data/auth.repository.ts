@@ -5,12 +5,16 @@ import type {
   LoginResponse,
   LogoutResponse,
 } from './dtos';
+import { Span, trace } from 'zentrace';
 
 export class AuthRepository {
   constructor(private readonly http: ApiClient) {}
 
-  login(input: LoginInput) {
-    return this.http.post<LoginResponse, LoginInput>('/auth/login', input);
+  @trace({ module: 'AuthRepository.login', captureArgs: false })
+  login(input: LoginInput, span?: Span) {
+    return this.http.post<LoginResponse, LoginInput>('/auth/login', input, {
+      span,
+    });
   }
 
   logout() {
