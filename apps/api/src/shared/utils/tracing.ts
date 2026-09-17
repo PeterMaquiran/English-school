@@ -11,6 +11,7 @@ import { B3InjectEncoding, B3Propagator } from '@opentelemetry/propagator-b3';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { PrismaInstrumentation } from '@prisma/instrumentation';
 
 if (process.env.OTEL_SDK_DISABLED !== 'true') {
   const sdk = new NodeSDK({
@@ -37,6 +38,7 @@ if (process.env.OTEL_SDK_DISABLED !== 'true') {
       new ExpressInstrumentation(),
       new NestInstrumentation(),
       new PinoInstrumentation(),
+      new PrismaInstrumentation(),
     ],
   });
 
