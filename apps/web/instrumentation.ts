@@ -1,11 +1,18 @@
 import type { Instrumentation } from "next";
-import { logger } from "./logger";
 
-export const onRequestError: Instrumentation.onRequestError = (
+export async function register() {
+  if (process.env.NEXT_RUNTIME === "nodejs") {
+    const { startTelemetry } = await import("./telemetry");
+    startTelemetry();
+  }
+}
+
+export const onRequestError: Instrumentation.onRequestError = async (
   error,
   request,
   context,
 ) => {
+  const { logger } = await import("./logger");
   const requestIdHeader = request.headers["x-request-id"];
   const requestId = Array.isArray(requestIdHeader)
     ? requestIdHeader[0]
