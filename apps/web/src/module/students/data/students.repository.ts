@@ -2,6 +2,7 @@ import type { ApiClient } from '@/infra/http';
 import type {
   AdminAdjustCefrBody,
   CreateStudentInput,
+  EnrollStudentInput,
   Student,
   UpdateStudentTargetLevelBody,
 } from './dtos';
@@ -9,8 +10,19 @@ import type {
 export class StudentsRepository {
   constructor(private readonly http: ApiClient) {}
 
+  enroll(input: EnrollStudentInput) {
+    return this.http.post<Student, EnrollStudentInput>(
+      '/students/enroll',
+      input,
+    );
+  }
+
   create(input: CreateStudentInput) {
     return this.http.post<Student, CreateStudentInput>('/students', input);
+  }
+
+  list() {
+    return this.http.get<Student[]>('/students');
   }
 
   getById(studentId: string) {

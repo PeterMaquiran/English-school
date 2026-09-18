@@ -8,15 +8,18 @@ import {
   adminAdjustCefrInputSchema,
   applyApprovedEvaluationInputSchema,
   createStudentInputSchema,
+  enrollStudentInputSchema,
   isCefrLower,
   isValidTargetLevel,
   updateStudentTargetLevelInputSchema,
   type AdminAdjustCefrInput,
   type ApplyApprovedEvaluationInput,
   type CreateStudentInput,
+  type EnrollStudentInput,
   type Student,
   type UpdateStudentTargetLevelInput,
 } from '@english-school/shared';
+import bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service.js';
 import { StudentLevelHistoryRepository } from '../placement/student-level-history.repository.js';
 import { StudentsRepository } from './students.repository.js';
@@ -53,6 +56,28 @@ export class StudentsService {
     }
 
     return this.students.create(input);
+  }
+
+  async enroll(raw: EnrollStudentInput): Promise<Student> {
+    const input = enrollStudentInputSchema.parse(raw);
+    const email = input.email.toLowerCase();
+    const existing = await this.users.findByEmail(email);
+    if (existing) {
+      throw new ConflictException('A person with this email already exists');
+    }
+
+    const passwordHash = await bcrypt.hash(input.password, 10);
+    return this.students.enroll({
+      name: input.name,
+      email,
+      passwordHash,
+      phone: input.phone,
+      targetLevel: input.targetLevel,
+    });
+  }
+
+  async list(): Promise<Student[]> {
+    return this.students.list();
   }
 
   async getById(id: string): Promise<Student> {

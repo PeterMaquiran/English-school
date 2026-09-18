@@ -6,6 +6,8 @@ const uuid = z.string().uuid();
 export const studentSchema = z.object({
   id: uuid,
   userId: uuid,
+  name: z.string(),
+  email: z.string().email(),
   cefrLevel: cefrLevelSchema.nullable(),
   targetLevel: cefrLevelSchema.nullable(),
   lessonCreditsRemaining: z.number().nonnegative(),
@@ -19,6 +21,15 @@ export const createStudentInputSchema = z.object({
   targetLevel: cefrLevelSchema.nullable().optional(),
 });
 export type CreateStudentInput = z.infer<typeof createStudentInputSchema>;
+
+export const enrollStudentInputSchema = z.object({
+  name: z.string().trim().min(1),
+  email: z.string().email(),
+  password: z.string().min(8),
+  phone: z.string().trim().min(1).optional(),
+  targetLevel: cefrLevelSchema.nullable().optional(),
+});
+export type EnrollStudentInput = z.infer<typeof enrollStudentInputSchema>;
 
 export const updateStudentTargetLevelInputSchema = z.object({
   studentId: uuid,

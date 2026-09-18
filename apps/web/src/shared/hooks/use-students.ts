@@ -8,6 +8,7 @@ import {
   studentsRepository,
   type AdminAdjustCefrBody,
   type CreateStudentInput,
+  type EnrollStudentInput,
   type Student,
   type UpdateStudentTargetLevelBody,
 } from '@/module/students';
@@ -29,9 +30,23 @@ export function useStudents() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const enroll = useCallback(async (input: EnrollStudentInput) => {
+    setPending(true);
+    const data = await unwrap(await studentsRepository.enroll(input), setError);
+    setPending(false);
+    return data;
+  }, []);
+
   const create = useCallback(async (input: CreateStudentInput) => {
     setPending(true);
     const data = await unwrap(await studentsRepository.create(input), setError);
+    setPending(false);
+    return data;
+  }, []);
+
+  const list = useCallback(async () => {
+    setPending(true);
+    const data = await unwrap(await studentsRepository.list(), setError);
     setPending(false);
     return data;
   }, []);
@@ -73,7 +88,9 @@ export function useStudents() {
   );
 
   return {
+    enroll,
     create,
+    list,
     getById,
     updateTargetLevel,
     adminAdjustCefr,

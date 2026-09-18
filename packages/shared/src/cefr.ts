@@ -29,6 +29,23 @@ export function isValidTargetLevel(
   return cefrRank(target) >= cefrRank(current);
 }
 
+export type GroupCourseLevelFit = 'match' | 'one_above' | 'blocked';
+
+/** Group seat: current level, or one level above with a written override. */
+export function groupCourseLevelFit(
+  studentLevel: CefrLevel,
+  courseLevel: CefrLevel,
+): GroupCourseLevelFit {
+  const delta = cefrRank(courseLevel) - cefrRank(studentLevel);
+  if (delta === 0) {
+    return 'match';
+  }
+  if (delta === 1) {
+    return 'one_above';
+  }
+  return 'blocked';
+}
+
 export type ScoreBand = {
   minScore: number;
   maxScore: number;

@@ -26,6 +26,8 @@ function student(overrides: Record<string, unknown> = {}) {
   return {
     id: studentId,
     userId: '22222222-2222-2222-2222-222222222222',
+    name: 'Ada Student',
+    email: 'ada@school.local',
     cefrLevel: 'A2' as const,
     targetLevel: 'B2' as const,
     lessonCreditsRemaining: 0,

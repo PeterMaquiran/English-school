@@ -60,7 +60,11 @@ export function proxy(request: NextRequest) {
     return redirect;
   }
 
-  if (PUBLIC_PATHS.has(path) && hasSession && path === '/login') {
+  if (
+    PUBLIC_PATHS.has(path) &&
+    hasSession &&
+    (path === '/login' || path === '/')
+  ) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = '/dashboard';
     dashboardUrl.search = '';

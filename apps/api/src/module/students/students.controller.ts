@@ -22,6 +22,7 @@ import { RolesGuard } from '../../shared/guards/roles.guard.js';
 import type { JwtUser } from '../../types/express.js';
 import { AdminAdjustCefrDto } from './dto/admin-adjust-cefr.dto.js';
 import { CreateStudentDto } from './dto/create-student.dto.js';
+import { EnrollStudentDto } from './dto/enroll-student.dto.js';
 import { StudentResponseDto } from './dto/student-response.dto.js';
 import { UpdateStudentTargetLevelDto } from './dto/update-student-target-level.dto.js';
 import { StudentsService } from './students.service.js';
@@ -33,12 +34,28 @@ import { StudentsService } from './students.service.js';
 export class StudentsController {
   constructor(private readonly students: StudentsService) {}
 
+  @Post('enroll')
+  @Roles('admin', 'front_desk')
+  @ApiOperation({ summary: 'Enroll a new student (creates login + profile)' })
+  @ApiCreatedResponse({ type: StudentResponseDto })
+  enroll(@Body() body: EnrollStudentDto) {
+    return this.students.enroll(body);
+  }
+
   @Post()
   @Roles('admin', 'front_desk')
   @ApiOperation({ summary: 'Create a student profile for an existing user' })
   @ApiCreatedResponse({ type: StudentResponseDto })
   create(@Body() body: CreateStudentDto) {
     return this.students.create(body);
+  }
+
+  @Get()
+  @Roles('admin', 'front_desk', 'teacher')
+  @ApiOperation({ summary: 'List student profiles' })
+  @ApiOkResponse({ type: [StudentResponseDto] })
+  list() {
+    return this.students.list();
   }
 
   @Get(':id')

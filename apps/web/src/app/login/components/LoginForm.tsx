@@ -3,6 +3,9 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { traceFn, type Span } from 'zentrace';
+import { Button } from '@/components/Button';
+import { Field, Input } from '@/components/Field';
+import { Notice } from '@/components/Notice';
 import { useLogin } from '../hooks/use-login';
 
 export function LoginForm() {
@@ -28,43 +31,31 @@ export function LoginForm() {
   );
 
   return (
-    <form onSubmit={onSubmit} className="flex w-full max-w-sm flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm font-medium">
-        Email
-        <input
+    <form onSubmit={onSubmit} className="flex w-full flex-col gap-4">
+      <Field label="Email">
+        <Input
           type="email"
           name="email"
           autoComplete="email"
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-200"
         />
-      </label>
-      <label className="flex flex-col gap-1 text-sm font-medium">
-        Password
-        <input
+      </Field>
+      <Field label="Password">
+        <Input
           type="password"
           name="password"
           autoComplete="current-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-200"
         />
-      </label>
-      {error ? (
-        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-          {error}
-        </p>
-      ) : null}
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-50 dark:text-zinc-950"
-      >
-        {pending ? 'Signing in…' : 'Sign in'}
-      </button>
+      </Field>
+      {error ? <Notice>{error}</Notice> : null}
+      <Button type="submit" disabled={pending} className="mt-2 w-full">
+        {pending ? 'Signing in…' : 'Continue'}
+      </Button>
     </form>
   );
 }

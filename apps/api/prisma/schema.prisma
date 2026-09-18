@@ -30,6 +30,26 @@ enum LevelChangeSource {
   admin
 }
 
+enum EnrollmentStatus {
+  pending_payment
+  active
+  completed
+  dropped
+}
+
+enum PaymentStatus {
+  draft
+  open
+  paid
+  void
+  overdue
+}
+
+enum CourseType {
+  group
+  private
+}
+
 model User {
   id                      String                @id @default(uuid()) @db.Uuid
   name                    String
@@ -41,6 +61,7 @@ model User {
   updatedAt               DateTime              @updatedAt @map("updated_at")
   refreshTokens           RefreshToken[]
   student                 Student?
+  teacher                 Teacher?
   confirmedPlacementTests PlacementTest[]       @relation("PlacementTestConfirmedBy")
   studentLevelChanges     StudentLevelHistory[]
 
@@ -57,8 +78,92 @@ model Student {
   user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   placementTests         PlacementTest[]
   levelHistory           StudentLevelHistory[]
+  enrollments            Enrollment[]
+  invoices               Invoice[]
 
   @@map("students")
+}
+
+model Teacher {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @unique @map("user_id") @db.Uuid
+  specializations   String[]
+  hourlyRate        Decimal  @default(0) @map("hourly_rate") @db.Decimal(8, 2)
+  isNative          Boolean  @default(false) @map("is_native")
+  zoomPersonalLink  String?  @map("zoom_personal_link")
+  createdAt         DateTime @default(now()) @map("created_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  batches           Batch[]
+
+  @@map("teachers")
+}
+
+model Course {
+  id             String     @id @default(uuid()) @db.Uuid
+  name           String
+  courseType     CourseType @map("course_type")
+  cefrLevel      CefrLevel  @map("cefr_level")
+  specialization String     @default("General")
+  defaultCapacity Int       @map("default_capacity")
+  tuitionAmount  Decimal    @map("tuition_amount") @db.Decimal(10, 2)
+  currency       String     @default("USD")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  batches        Batch[]
+
+  @@map("courses")
+}
+
+model Batch {
+  id          String   @id @default(uuid()) @db.Uuid
+  courseId    String   @map("course_id") @db.Uuid
+  teacherId   String   @map("teacher_id") @db.Uuid
+  scheduleLabel String @map("schedule_label")
+  roomNumber  String?  @map("room_number")
+  meetingUrl  String?  @map("meeting_url")
+  startDate   DateTime @map("start_date") @db.Date
+  endDate     DateTime @map("end_date") @db.Date
+  capacity    Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  enrollments Enrollment[]
+
+  @@index([courseId])
+  @@map("batches")
+}
+
+model Enrollment {
+  id                  String           @id @default(uuid()) @db.Uuid
+  studentId           String           @map("student_id") @db.Uuid
+  batchId             String           @map("batch_id") @db.Uuid
+  status              EnrollmentStatus
+  levelOverrideReason String?          @map("level_override_reason")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  student             Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch               Batch            @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  invoice             Invoice?
+
+  @@index([studentId])
+  @@index([batchId])
+  @@map("enrollments")
+}
+
+model Invoice {
+  id                 String        @id @default(uuid()) @db.Uuid
+  studentId          String        @map("student_id") @db.Uuid
+  enrollmentId       String?       @unique @map("enrollment_id") @db.Uuid
+  amount             Decimal       @db.Decimal(10, 2)
+  currency           String
+  creditHoursBought  Decimal       @default(0) @map("credit_hours_bought") @db.Decimal(6, 2)
+  paymentStatus      PaymentStatus @map("payment_status")
+  dueDate            DateTime      @map("due_date") @db.Date
+  description        String
+  createdAt          DateTime      @default(now()) @map("created_at")
+  student            Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment         Enrollment?   @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@map("invoices")
 }
 
 model PlacementScoreBand {

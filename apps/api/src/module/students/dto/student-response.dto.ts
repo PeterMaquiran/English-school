@@ -8,6 +8,12 @@ export class StudentResponseDto {
   @ApiProperty({ format: 'uuid' })
   userId: string;
 
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  email: string;
+
   @ApiPropertyOptional({
     enum: CEFR_LEVELS,
     enumName: 'CefrLevel',

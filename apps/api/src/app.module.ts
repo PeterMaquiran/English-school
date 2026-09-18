@@ -6,8 +6,11 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import configuration from './config/configuration.js';
 import { AuthModule } from './module/auth/auth.module.js';
+import { CoursesModule } from './module/courses/courses.module.js';
+import { EnrollmentsModule } from './module/enrollments/enrollments.module.js';
 import { PlacementModule } from './module/placement/placement.module.js';
 import { StudentsModule } from './module/students/students.module.js';
+import { TeachersModule } from './module/teachers/teachers.module.js';
 import { UsersModule } from './module/users/users.module.js';
 import { PrismaModule } from './shared/prisma/prisma.module.js';
 
@@ -38,6 +41,9 @@ const pinoPrettyTransport =
     PrismaModule,
     UsersModule,
     StudentsModule,
+    TeachersModule,
+    CoursesModule,
+    EnrollmentsModule,
     PlacementModule,
     AuthModule,
     LoggerModule.forRoot({

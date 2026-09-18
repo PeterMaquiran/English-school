@@ -1,6 +1,7 @@
 import type {
   AdminAdjustCefrBody,
   CreateStudentInput,
+  EnrollStudentInput,
   Student,
   UpdateStudentTargetLevelBody,
 } from '@english-school/shared';
@@ -8,6 +9,7 @@ import type {
 export type {
   AdminAdjustCefrBody,
   CreateStudentInput,
+  EnrollStudentInput,
   Student,
   UpdateStudentTargetLevelBody,
 };

@@ -9,17 +9,22 @@ export {
   type CourseType,
   type EnrollmentStatus,
   type LevelChangeSource,
+  PAY_LATER_DAYS,
+  SEAT_HOLDING_STATUSES,
+  paymentStatusSchema,
+  type PaymentStatus,
   type Role,
 } from './enums.js';
 
 export {
   cefrRank,
+  groupCourseLevelFit,
   isCefrHigher,
   isCefrLower,
   isValidTargetLevel,
   recommendCefrFromScore,
   scoreBandsOverlap,
-  type ScoreBand,
+  type GroupCourseLevelFit,
 } from './cefr.js';
 
 export {
@@ -27,6 +32,7 @@ export {
   adminAdjustCefrInputSchema,
   applyApprovedEvaluationInputSchema,
   createStudentInputSchema,
+  enrollStudentInputSchema,
   studentSchema,
   updateStudentTargetLevelBodySchema,
   updateStudentTargetLevelInputSchema,
@@ -34,6 +40,7 @@ export {
   type AdminAdjustCefrInput,
   type ApplyApprovedEvaluationInput,
   type CreateStudentInput,
+  type EnrollStudentInput,
   type Student,
   type UpdateStudentTargetLevelBody,
   type UpdateStudentTargetLevelInput,
@@ -55,3 +62,24 @@ export {
   type ReplacePlacementScoreBandsInput,
   type StudentLevelHistory,
 } from './placement.js';
+
+export {
+  batchSchema,
+  courseSchema,
+  createBatchInputSchema,
+  createCourseInputSchema,
+  enrollmentSchema,
+  hireTeacherInputSchema,
+  invoiceSchema,
+  seatStudentInputSchema,
+  teacherSchema,
+  type Batch,
+  type Course,
+  type CreateBatchInput,
+  type CreateCourseInput,
+  type Enrollment,
+  type HireTeacherInput,
+  type Invoice,
+  type SeatStudentInput,
+  type Teacher,
+} from './classes.js';

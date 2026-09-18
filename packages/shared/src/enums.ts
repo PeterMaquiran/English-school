@@ -30,3 +30,19 @@ export const enrollmentStatusSchema = z.enum([
   'dropped',
 ]);
 export type EnrollmentStatus = z.infer<typeof enrollmentStatusSchema>;
+
+export const paymentStatusSchema = z.enum([
+  'draft',
+  'open',
+  'paid',
+  'void',
+  'overdue',
+]);
+export type PaymentStatus = z.infer<typeof paymentStatusSchema>;
+
+export const SEAT_HOLDING_STATUSES = [
+  'pending_payment',
+  'active',
+] as const satisfies readonly EnrollmentStatus[];
+
+export const PAY_LATER_DAYS = 7;

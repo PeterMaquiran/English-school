@@ -10,10 +10,12 @@ const students = {
   findById: vi.fn(),
   findByUserId: vi.fn(),
   create: vi.fn(),
+  enroll: vi.fn(),
   updateLevels: vi.fn(),
 };
 const users = {
   findById: vi.fn(),
+  findByEmail: vi.fn(),
 };
 const levelHistory = {
   append: vi.fn(),
@@ -23,6 +25,8 @@ function baseStudent(overrides: Record<string, unknown> = {}) {
   return {
     id: studentId,
     userId,
+    name: 'Ada Student',
+    email: 'ada@school.local',
     cefrLevel: 'A2',
     targetLevel: 'B1',
     lessonCreditsRemaining: 0,
@@ -64,6 +68,27 @@ describe('StudentsService', () => {
     await service.create({ userId });
 
     expect(students.create).toHaveBeenCalledWith({ userId });
+  });
+
+  it('enrolls a new student with a login', async () => {
+    users.findByEmail.mockResolvedValue(null);
+    students.enroll.mockResolvedValue(baseStudent({ cefrLevel: null }));
+
+    await service.enroll({
+      name: 'Ada Student',
+      email: 'ada@school.local',
+      password: 'Welcome123!',
+      targetLevel: 'B1',
+    });
+
+    expect(students.enroll).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Ada Student',
+        email: 'ada@school.local',
+        targetLevel: 'B1',
+      }),
+    );
+    expect(students.enroll.mock.calls[0][0].passwordHash).toBeTruthy();
   });
 
   it('refuses a second profile for the same user', async () => {
