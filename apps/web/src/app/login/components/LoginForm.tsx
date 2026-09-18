@@ -14,12 +14,12 @@ export function LoginForm() {
   const onSubmit = traceFn(
     async (event: FormEvent<HTMLFormElement>, span?: Span) => {
       event.preventDefault();
-      span?.console.log('submitting login', { email });
 
       const user = await submit({ email, password }, span);
 
       if (user) {
-        span?.console.info('login succeeded', { userId: user.id });
+        span?.setAttribute('auth.outcome', 'success');
+        span?.setAttribute('user.id', user.id);
         router.push('/dashboard');
         router.refresh();
       }

@@ -14,7 +14,6 @@ export function useLogin() {
       async (input: LoginInput, span?: Span) => {
         setPending(true);
         setError(null);
-        span?.console.log('login request started', { email: input.email });
 
         const result = await authRepository.login(input, span);
 
@@ -22,15 +21,15 @@ export function useLogin() {
 
         if (result.isErr()) {
           const message = getApiErrorMessage(result.error);
-          span?.console.error('login failed', message);
+          span?.setAttribute('auth.outcome', 'failure');
           span?.recordError(result.error, message);
+          span?.console.error('login failed', message);
           setError(message);
           return null;
         }
 
-        span?.console.info('login succeeded', {
-          userId: result.value.data.user.id,
-        });
+        span?.setAttribute('auth.outcome', 'success');
+        span?.setAttribute('user.id', result.value.data.user.id);
         return result.value.data.user;
       },
       { name: 'useLogin.submit', module: 'auth', captureArgs: false },

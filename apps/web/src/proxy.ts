@@ -24,6 +24,14 @@ export function proxy(request: NextRequest) {
 
   requestHeaders.set('x-request-id', requestId);
 
+  if (request.nextUrl.pathname.startsWith('/telemetry/')) {
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    response.headers.set('x-request-id', requestId);
+    return response;
+  }
+
   logger.info(
     {
       event: 'http.request.received',
