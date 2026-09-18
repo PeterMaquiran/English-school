@@ -6,9 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@english-school/shared": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/core": "^2.11.0",
     "@opentelemetry/exporter-zipkin": "^2.11.0",

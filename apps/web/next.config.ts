@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  transpilePackages: ['@english-school/shared'],
   serverExternalPackages: ['pino', 'pino-pretty', 'thread-stream'],
   allowedDevOrigins: ['192.168.1.73'],
   logging: {
