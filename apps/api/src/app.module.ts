@@ -9,6 +9,7 @@ import { AuthModule } from './module/auth/auth.module.js';
 import { CoursesModule } from './module/courses/courses.module.js';
 import { EnrollmentsModule } from './module/enrollments/enrollments.module.js';
 import { PlacementModule } from './module/placement/placement.module.js';
+import { SessionsModule } from './module/sessions/sessions.module.js';
 import { StudentsModule } from './module/students/students.module.js';
 import { TeachersModule } from './module/teachers/teachers.module.js';
 import { UsersModule } from './module/users/users.module.js';
@@ -44,6 +45,7 @@ const pinoPrettyTransport =
     TeachersModule,
     CoursesModule,
     EnrollmentsModule,
+    SessionsModule,
     PlacementModule,
     AuthModule,
     LoggerModule.forRoot({

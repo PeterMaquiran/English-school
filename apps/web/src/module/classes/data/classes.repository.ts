@@ -6,8 +6,12 @@ import type {
   CreateCourseInput,
   Enrollment,
   HireTeacherInput,
+  LessonSession,
+  LessonSessionDetail,
+  MarkAttendanceInput,
   SeatStudentInput,
   Teacher,
+  UpdateSessionStatusInput,
 } from './dtos';
 
 export class ClassesRepository {
@@ -68,5 +72,27 @@ export class ClassesRepository {
 
   collectInvoice(invoiceId: string) {
     return this.http.post<Enrollment>(`/invoices/${invoiceId}/collect`);
+  }
+
+  listSessions(query?: { from?: string; to?: string; batchId?: string }) {
+    return this.http.get<LessonSession[]>('/sessions', query);
+  }
+
+  getSession(sessionId: string) {
+    return this.http.get<LessonSessionDetail>(`/sessions/${sessionId}`);
+  }
+
+  updateSessionStatus(sessionId: string, input: UpdateSessionStatusInput) {
+    return this.http.patch<LessonSession, UpdateSessionStatusInput>(
+      `/sessions/${sessionId}`,
+      input,
+    );
+  }
+
+  markAttendance(sessionId: string, input: MarkAttendanceInput) {
+    return this.http.put<LessonSessionDetail, MarkAttendanceInput>(
+      `/sessions/${sessionId}/attendance`,
+      input,
+    );
   }
 }

@@ -10,6 +10,6 @@ import { EnrollmentsService } from './enrollments.service.js';
   imports: [AuthModule, StudentsModule, CoursesModule],
   controllers: [EnrollmentsController],
   providers: [EnrollmentsRepository, EnrollmentsService],
-  exports: [EnrollmentsService],
+  exports: [EnrollmentsService, EnrollmentsRepository],
 })
 export class EnrollmentsModule {}

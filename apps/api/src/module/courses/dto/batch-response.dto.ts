@@ -30,6 +30,15 @@ export class BatchResponseDto {
   @ApiProperty()
   scheduleLabel: string;
 
+  @ApiProperty({ type: [Number] })
+  weekdays: number[];
+
+  @ApiProperty()
+  startTime: string;
+
+  @ApiProperty()
+  endTime: string;
+
   @ApiPropertyOptional({ nullable: true })
   roomNumber: string | null;
 

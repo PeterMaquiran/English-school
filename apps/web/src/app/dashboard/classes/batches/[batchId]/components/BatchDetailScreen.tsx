@@ -14,10 +14,16 @@ import {
   classesRepository,
   type Batch,
   type Enrollment,
+  type LessonSession,
 } from '@/module/classes';
 import { studentsRepository, type Student } from '@/module/students';
 import { canManageStudents } from '@/utils/access';
-import { formatDate, formatMoney, formatSeatStatus } from '@/utils/format';
+import {
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatSeatStatus,
+} from '@/utils/format';
 import { getApiErrorMessage } from '@/utils/api-error-message';
 import { groupCourseLevelFit } from '@english-school/shared';
 
@@ -25,6 +31,7 @@ export function BatchDetailScreen({ batchId }: { batchId: string }) {
   const user = useDashboardUser();
   const [batch, setBatch] = useState<Batch | null>(null);
   const [seats, setSeats] = useState<Enrollment[]>([]);
+  const [sessions, setSessions] = useState<LessonSession[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,7 +50,8 @@ export function BatchDetailScreen({ batchId }: { batchId: string }) {
       classesRepository.getBatch(batchId),
       classesRepository.listBatchEnrollments(batchId),
       studentsRepository.list(),
-    ]).then(([batchResult, seatResult, studentResult]) => {
+      classesRepository.listSessions({ batchId }),
+    ]).then(([batchResult, seatResult, studentResult, sessionResult]) => {
       if (cancelled) {
         return;
       }
@@ -54,6 +62,7 @@ export function BatchDetailScreen({ batchId }: { batchId: string }) {
       setBatch(batchResult.value.data);
       setSeats(seatResult.isOk() ? seatResult.value.data : []);
       setStudents(studentResult.isOk() ? studentResult.value.data : []);
+      setSessions(sessionResult.isOk() ? sessionResult.value.data : []);
     });
     return () => {
       cancelled = true;
@@ -93,60 +102,91 @@ export function BatchDetailScreen({ batchId }: { batchId: string }) {
         {batch.roomNumber ? <span>Room {batch.roomNumber}</span> : null}
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <Card className="p-0">
-          {seats.length === 0 ? (
-            <EmptyState
-              title="No one seated yet"
-              description="Place a student, then give them a seat. Tuition opens automatically."
-            />
-          ) : (
-            <ul className="divide-y divide-line">
-              {seats.map((seat) => (
-                <li
-                  key={seat.id}
-                  className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div>
+        <div className="flex flex-col gap-6">
+          <Card className="p-0">
+            {sessions.length === 0 ? (
+              <EmptyState
+                title="No lessons on the calendar"
+                description="Lessons are created from the weekdays and times when you open the class. School holidays are skipped."
+              />
+            ) : (
+              <ul className="divide-y divide-line">
+                {sessions.map((session) => (
+                  <li key={session.id}>
                     <Link
-                      href={`/dashboard/students/${seat.studentId}`}
-                      className="text-[15px] font-medium hover:underline"
+                      href={`/dashboard/calendar/${session.id}`}
+                      className="block px-6 py-4 hover:bg-[#fafafa]"
                     >
-                      {seat.studentName}
+                      <p className="text-[15px] font-medium">
+                        {formatDateTime(session.startsAt)}
+                      </p>
+                      <p className="text-sm text-muted">
+                        {session.teacherName}
+                        {session.roomNumber
+                          ? ` · Room ${session.roomNumber}`
+                          : ''}
+                      </p>
                     </Link>
-                    <p className="text-sm text-muted">
-                      {formatSeatStatus(seat.status)}
-                      {seat.invoice
-                        ? ` · ${formatMoney(seat.invoice.amount, seat.invoice.currency)}`
-                        : ''}
-                    </p>
-                  </div>
-                  {canManageStudents(user.role) &&
-                  seat.invoice &&
-                  (seat.invoice.paymentStatus === 'open' ||
-                    seat.invoice.paymentStatus === 'overdue') ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => {
-                        void classesRepository
-                          .collectInvoice(seat.invoice!.id)
-                          .then((result) => {
-                            if (result.isOk()) {
-                              applySeat(result.value.data);
-                            } else {
-                              setError(getApiErrorMessage(result.error));
-                            }
-                          });
-                      }}
-                    >
-                      Collect tuition
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+          <Card className="p-0">
+            {seats.length === 0 ? (
+              <EmptyState
+                title="No one seated yet"
+                description="Place a student, then give them a seat. Tuition opens automatically."
+              />
+            ) : (
+              <ul className="divide-y divide-line">
+                {seats.map((seat) => (
+                  <li
+                    key={seat.id}
+                    className="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <Link
+                        href={`/dashboard/students/${seat.studentId}`}
+                        className="text-[15px] font-medium hover:underline"
+                      >
+                        {seat.studentName}
+                      </Link>
+                      <p className="text-sm text-muted">
+                        {formatSeatStatus(seat.status)}
+                        {seat.invoice
+                          ? ` · ${formatMoney(seat.invoice.amount, seat.invoice.currency)}`
+                          : ''}
+                      </p>
+                    </div>
+                    {canManageStudents(user.role) &&
+                    seat.invoice &&
+                    (seat.invoice.paymentStatus === 'open' ||
+                      seat.invoice.paymentStatus === 'overdue') ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          void classesRepository
+                            .collectInvoice(seat.invoice!.id)
+                            .then((result) => {
+                              if (result.isOk()) {
+                                applySeat(result.value.data);
+                              } else {
+                                setError(getApiErrorMessage(result.error));
+                              }
+                            });
+                        }}
+                      >
+                        Collect tuition
+                      </Button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
         {canManageStudents(user.role) ? (
           <SeatCard
             batch={batch}

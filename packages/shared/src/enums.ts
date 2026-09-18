@@ -46,3 +46,19 @@ export const SEAT_HOLDING_STATUSES = [
 ] as const satisfies readonly EnrollmentStatus[];
 
 export const PAY_LATER_DAYS = 7;
+
+export const lessonSessionStatusSchema = z.enum([
+  'scheduled',
+  'completed',
+  'cancelled',
+  'rescheduled',
+]);
+export type LessonSessionStatus = z.infer<typeof lessonSessionStatusSchema>;
+
+export const attendanceStatusSchema = z.enum(['present', 'absent', 'excused']);
+export type AttendanceStatus = z.infer<typeof attendanceStatusSchema>;
+
+export const weekdaySchema = z.number().int().min(0).max(6);
+export const timeOfDaySchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Use 24-hour time, for example 18:00');

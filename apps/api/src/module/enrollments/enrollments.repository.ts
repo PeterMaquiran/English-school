@@ -79,6 +79,20 @@ export class EnrollmentsRepository {
     });
   }
 
+  async listHoldingRoster(
+    batchId: string,
+  ): Promise<{ studentId: string; studentName: string }[]> {
+    const rows = await this.prisma.enrollment.findMany({
+      where: { batchId, status: { in: holdingStatuses } },
+      include: { student: { include: { user: true } } },
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows.map((row) => ({
+      studentId: row.studentId,
+      studentName: row.student.user.name,
+    }));
+  }
+
   async createSeat(input: {
     studentId: string;
     batchId: string;

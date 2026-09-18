@@ -1,9 +1,13 @@
 import { z } from 'zod';
 import {
+  attendanceStatusSchema,
   cefrLevelSchema,
   courseTypeSchema,
   enrollmentStatusSchema,
+  lessonSessionStatusSchema,
   paymentStatusSchema,
+  timeOfDaySchema,
+  weekdaySchema,
 } from './enums.js';
 
 const uuid = z.string().uuid();
@@ -65,6 +69,9 @@ export const batchSchema = z.object({
   cefrLevel: cefrLevelSchema,
   courseType: courseTypeSchema,
   scheduleLabel: z.string(),
+  weekdays: z.array(weekdaySchema),
+  startTime: timeOfDaySchema,
+  endTime: timeOfDaySchema,
   roomNumber: z.string().nullable(),
   meetingUrl: z.string().nullable(),
   startDate: z.coerce.date(),
@@ -80,15 +87,32 @@ export type Batch = z.infer<typeof batchSchema>;
 export const createBatchInputSchema = z
   .object({
     teacherId: uuid,
-    scheduleLabel: z.string().trim().min(1),
+    weekdays: z.array(weekdaySchema).min(1),
+    startTime: z.preprocess(
+      (value) => (typeof value === 'string' ? value.slice(0, 5) : value),
+      timeOfDaySchema,
+    ),
+    endTime: z.preprocess(
+      (value) => (typeof value === 'string' ? value.slice(0, 5) : value),
+      timeOfDaySchema,
+    ),
     roomNumber: z.preprocess(
       (value) => (value === '' ? null : value),
       z.string().trim().min(1).nullable().optional(),
     ),
-    meetingUrl: z.preprocess(
-      (value) => (value === '' ? undefined : value),
-      z.string().trim().url().nullable().optional(),
-    ),
+    meetingUrl: z.preprocess((value) => {
+      if (value === '' || value === undefined) {
+        return undefined;
+      }
+      if (typeof value !== 'string') {
+        return value;
+      }
+      const trimmed = value.trim();
+      if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed;
+      }
+      return `https://${trimmed}`;
+    }, z.string().trim().url().nullable().optional()),
     startDate: z.coerce.date(),
     endDate: z.coerce.date(),
     capacity: z.number().int().positive().optional(),
@@ -96,8 +120,64 @@ export const createBatchInputSchema = z
   .refine((input) => input.endDate >= input.startDate, {
     message: 'End date must be on or after the start date',
     path: ['endDate'],
-  });
+  })
+  .refine(
+    (input) => {
+      const start = input.startTime.split(':').map(Number);
+      const end = input.endTime.split(':').map(Number);
+      return (
+        (end[0] ?? 0) * 60 + (end[1] ?? 0) >
+        (start[0] ?? 0) * 60 + (start[1] ?? 0)
+      );
+    },
+    {
+      message: 'Class must end after it starts',
+      path: ['endTime'],
+    },
+  );
 export type CreateBatchInput = z.infer<typeof createBatchInputSchema>;
+
+export const lessonSessionSchema = z.object({
+  id: uuid,
+  batchId: uuid.nullable(),
+  teacherId: uuid,
+  teacherName: z.string(),
+  courseName: z.string().nullable(),
+  scheduleLabel: z.string().nullable(),
+  startsAt: z.coerce.date(),
+  endsAt: z.coerce.date(),
+  roomNumber: z.string().nullable(),
+  meetingUrl: z.string().nullable(),
+  status: lessonSessionStatusSchema,
+  createdAt: z.coerce.date(),
+});
+export type LessonSession = z.infer<typeof lessonSessionSchema>;
+
+export const attendanceRecordSchema = z.object({
+  studentId: uuid,
+  studentName: z.string(),
+  status: attendanceStatusSchema.nullable(),
+});
+export type AttendanceRecord = z.infer<typeof attendanceRecordSchema>;
+
+export const lessonSessionDetailSchema = lessonSessionSchema.extend({
+  roster: z.array(attendanceRecordSchema),
+  attendanceLocked: z.boolean(),
+});
+export type LessonSessionDetail = z.infer<typeof lessonSessionDetailSchema>;
+
+export const markAttendanceInputSchema = z.object({
+  studentId: uuid,
+  status: attendanceStatusSchema,
+});
+export type MarkAttendanceInput = z.infer<typeof markAttendanceInputSchema>;
+
+export const updateSessionStatusInputSchema = z.object({
+  status: z.enum(['scheduled', 'completed', 'cancelled']),
+});
+export type UpdateSessionStatusInput = z.infer<
+  typeof updateSessionStatusInputSchema
+>;
 
 export const invoiceSchema = z.object({
   id: uuid,

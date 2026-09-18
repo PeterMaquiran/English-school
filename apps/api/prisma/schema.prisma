@@ -50,6 +50,19 @@ enum CourseType {
   private
 }
 
+enum LessonSessionStatus {
+  scheduled
+  completed
+  cancelled
+  rescheduled
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  excused
+}
+
 model User {
   id                      String                @id @default(uuid()) @db.Uuid
   name                    String
@@ -64,6 +77,7 @@ model User {
   teacher                 Teacher?
   confirmedPlacementTests PlacementTest[]       @relation("PlacementTestConfirmedBy")
   studentLevelChanges     StudentLevelHistory[]
+  attendanceMarked        Attendance[]
 
   @@map("users")
 }
@@ -80,6 +94,7 @@ model Student {
   levelHistory           StudentLevelHistory[]
   enrollments            Enrollment[]
   invoices               Invoice[]
+  attendance             Attendance[]
 
   @@map("students")
 }
@@ -94,6 +109,7 @@ model Teacher {
   createdAt         DateTime @default(now()) @map("created_at")
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   batches           Batch[]
+  sessions          LessonSession[]
 
   @@map("teachers")
 }
@@ -114,22 +130,71 @@ model Course {
 }
 
 model Batch {
-  id          String   @id @default(uuid()) @db.Uuid
-  courseId    String   @map("course_id") @db.Uuid
-  teacherId   String   @map("teacher_id") @db.Uuid
-  scheduleLabel String @map("schedule_label")
-  roomNumber  String?  @map("room_number")
-  meetingUrl  String?  @map("meeting_url")
-  startDate   DateTime @map("start_date") @db.Date
-  endDate     DateTime @map("end_date") @db.Date
-  capacity    Int
-  createdAt   DateTime @default(now()) @map("created_at")
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Restrict)
-  enrollments Enrollment[]
+  id            String          @id @default(uuid()) @db.Uuid
+  courseId      String          @map("course_id") @db.Uuid
+  teacherId     String          @map("teacher_id") @db.Uuid
+  scheduleLabel String          @map("schedule_label")
+  weekdays      Int[]
+  startTime     String          @map("start_time")
+  endTime       String          @map("end_time")
+  roomNumber    String?         @map("room_number")
+  meetingUrl    String?         @map("meeting_url")
+  startDate     DateTime        @map("start_date") @db.Date
+  endDate       DateTime        @map("end_date") @db.Date
+  capacity      Int
+  createdAt     DateTime        @default(now()) @map("created_at")
+  course        Course          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  teacher       Teacher         @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  enrollments   Enrollment[]
+  sessions      LessonSession[]
 
   @@index([courseId])
   @@map("batches")
+}
+
+model SchoolHoliday {
+  id          String   @id @default(uuid()) @db.Uuid
+  observedOn  DateTime @unique @map("observed_on") @db.Date
+  name        String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("school_holidays")
+}
+
+model LessonSession {
+  id          String              @id @default(uuid()) @db.Uuid
+  batchId     String?             @map("batch_id") @db.Uuid
+  teacherId   String              @map("teacher_id") @db.Uuid
+  startsAt    DateTime            @map("starts_at")
+  endsAt      DateTime            @map("ends_at")
+  roomNumber  String?             @map("room_number")
+  meetingUrl  String?             @map("meeting_url")
+  status      LessonSessionStatus
+  createdAt   DateTime            @default(now()) @map("created_at")
+  batch       Batch?              @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  teacher     Teacher             @relation(fields: [teacherId], references: [id], onDelete: Restrict)
+  attendance  Attendance[]
+
+  @@unique([batchId, startsAt])
+  @@index([teacherId, startsAt])
+  @@index([startsAt])
+  @@map("lesson_sessions")
+}
+
+model Attendance {
+  id             String           @id @default(uuid()) @db.Uuid
+  sessionId      String           @map("session_id") @db.Uuid
+  studentId      String           @map("student_id") @db.Uuid
+  status         AttendanceStatus
+  markedAt       DateTime         @default(now()) @map("marked_at")
+  markedByUserId String?          @map("marked_by_user_id") @db.Uuid
+  session        LessonSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  markedBy       User?            @relation(fields: [markedByUserId], references: [id])
+
+  @@unique([sessionId, studentId])
+  @@index([studentId])
+  @@map("attendance")
 }
 
 model Enrollment {

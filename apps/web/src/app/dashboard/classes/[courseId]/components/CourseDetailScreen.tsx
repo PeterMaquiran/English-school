@@ -20,6 +20,16 @@ import { canManageStudents } from '@/utils/access';
 import { formatDate, formatMoney } from '@/utils/format';
 import { getApiErrorMessage } from '@/utils/api-error-message';
 
+const WEEKDAY_OPTIONS = [
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+  { value: 0, label: 'Sun' },
+];
+
 export function CourseDetailScreen({ courseId }: { courseId: string }) {
   const user = useDashboardUser();
   const [course, setCourse] = useState<Course | null>(null);
@@ -123,9 +133,16 @@ function OpenBatchCard({
   teachers: Teacher[];
   onCreated: (batch: Batch) => void;
 }) {
+  const eligibleTeachers = teachers.filter((teacher) =>
+    teacher.specializations.some(
+      (item) => item.toLowerCase() === course.specialization.toLowerCase(),
+    ),
+  );
   const [teacherId, setTeacherId] = useState('');
-  const selectedTeacherId = teacherId || teachers[0]?.id || '';
-  const [scheduleLabel, setScheduleLabel] = useState('');
+  const selectedTeacherId = teacherId || eligibleTeachers[0]?.id || '';
+  const [weekdays, setWeekdays] = useState<number[]>([2, 4]);
+  const [startTime, setStartTime] = useState('18:00');
+  const [endTime, setEndTime] = useState('19:30');
   const [roomNumber, setRoomNumber] = useState('');
   const [meetingUrl, setMeetingUrl] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -133,7 +150,7 @@ function OpenBatchCard({
   const [capacity, setCapacity] = useState(String(course.defaultCapacity));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const selectedTeacher = teachers.find(
+  const selectedTeacher = eligibleTeachers.find(
     (teacher) => teacher.id === selectedTeacherId,
   );
 
@@ -149,14 +166,20 @@ function OpenBatchCard({
       );
       return;
     }
+    if (weekdays.length === 0) {
+      setError('Pick at least one weekday.');
+      return;
+    }
     setPending(true);
     const result = await classesRepository.createBatch(course.id, {
       teacherId: selectedTeacherId,
-      scheduleLabel: scheduleLabel.trim(),
+      weekdays,
+      startTime: startTime.slice(0, 5),
+      endTime: endTime.slice(0, 5),
       roomNumber: roomNumber.trim() || null,
       meetingUrl: meetingUrl.trim() || undefined,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: startDate,
+      endDate: endDate,
       capacity: Number(capacity),
     });
     setPending(false);
@@ -165,7 +188,6 @@ function OpenBatchCard({
       return;
     }
     setError(null);
-    setScheduleLabel('');
     onCreated(result.value.data);
   }
 
@@ -176,9 +198,9 @@ function OpenBatchCard({
         Need a teacher who teaches {course.specialization}. Fill a room, a
         meeting link, or use the teacher’s Zoom link.
       </p>
-      {teachers.length === 0 ? (
+      {eligibleTeachers.length === 0 ? (
         <p className="mt-4 text-sm text-muted">
-          Hire a teacher first, then come back.{' '}
+          Nobody on the books teaches {course.specialization} yet.{' '}
           <Link href="/dashboard/teachers" className="text-accent">
             Teachers
           </Link>
@@ -191,21 +213,65 @@ function OpenBatchCard({
               onChange={(event) => setTeacherId(event.target.value)}
               required
             >
-              {teachers.map((teacher) => (
+              {eligibleTeachers.map((teacher) => (
                 <option key={teacher.id} value={teacher.id}>
                   {teacher.name}
                 </option>
               ))}
             </Select>
           </Field>
-          <Field label="Timetable">
-            <Input
-              value={scheduleLabel}
-              onChange={(event) => setScheduleLabel(event.target.value)}
-              required
-              placeholder="Tue & Thu 18:00"
-            />
-          </Field>
+          <fieldset className="flex flex-col gap-1.5">
+            <legend className="text-[13px] font-medium text-muted">Days</legend>
+            <div className="flex flex-wrap gap-2">
+              {WEEKDAY_OPTIONS.map((day) => {
+                const checked = weekdays.includes(day.value);
+                return (
+                  <label
+                    key={day.value}
+                    className={`inline-flex h-9 cursor-pointer items-center rounded-full px-3 text-sm ${
+                      checked
+                        ? 'bg-accent text-white'
+                        : 'bg-[#f5f5f7] text-foreground'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={checked}
+                      onChange={() => {
+                        setWeekdays((current) =>
+                          checked
+                            ? current.filter((item) => item !== day.value)
+                            : [...current, day.value],
+                        );
+                      }}
+                    />
+                    {day.label}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Starts">
+              <Input
+                type="time"
+                step={60}
+                value={startTime}
+                onChange={(event) => setStartTime(event.target.value)}
+                required
+              />
+            </Field>
+            <Field label="Ends">
+              <Input
+                type="time"
+                step={60}
+                value={endTime}
+                onChange={(event) => setEndTime(event.target.value)}
+                required
+              />
+            </Field>
+          </div>
           <Field label="Room">
             <Input
               value={roomNumber}
@@ -218,10 +284,10 @@ function OpenBatchCard({
               type="url"
               value={meetingUrl}
               onChange={(event) => setMeetingUrl(event.target.value)}
-              placeholder="https://"
+              placeholder="https://zoom.us/…"
             />
           </Field>
-          <Field label="Starts">
+          <Field label="First day">
             <Input
               type="date"
               value={startDate}
@@ -229,7 +295,7 @@ function OpenBatchCard({
               required
             />
           </Field>
-          <Field label="Ends">
+          <Field label="Last day">
             <Input
               type="date"
               value={endDate}

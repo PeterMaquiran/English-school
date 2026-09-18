@@ -24,6 +24,14 @@ export class TeachersRepository {
     return row ? toTeacher(row) : null;
   }
 
+  async findByUserId(userId: string): Promise<Teacher | null> {
+    const row = await this.prisma.teacher.findUnique({
+      where: { userId },
+      include: { user: true },
+    });
+    return row ? toTeacher(row) : null;
+  }
+
   async hire(input: {
     name: string;
     email: string;

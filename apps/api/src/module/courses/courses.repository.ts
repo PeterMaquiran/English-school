@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import {
+  listGroupSessionWindows,
   type Batch,
   type Course,
   type CreateBatchInput,
@@ -76,20 +77,51 @@ export class CoursesRepository {
 
   async createBatch(
     courseId: string,
-    input: CreateBatchInput & { capacity: number },
+    input: CreateBatchInput & { capacity: number; scheduleLabel: string },
   ): Promise<Batch> {
-    const row = await this.prisma.batch.create({
-      data: {
-        courseId,
-        teacherId: input.teacherId,
-        scheduleLabel: input.scheduleLabel,
-        roomNumber: input.roomNumber ?? null,
-        meetingUrl: input.meetingUrl ?? null,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        capacity: input.capacity,
-      },
-      include: batchInclude,
+    const holidays = await this.prisma.schoolHoliday.findMany();
+    const windows = listGroupSessionWindows({
+      startDate: input.startDate,
+      endDate: input.endDate,
+      weekdays: input.weekdays,
+      startTime: input.startTime,
+      endTime: input.endTime,
+      holidays: holidays.map((row) => row.observedOn),
+    });
+
+    const row = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.batch.create({
+        data: {
+          courseId,
+          teacherId: input.teacherId,
+          scheduleLabel: input.scheduleLabel,
+          weekdays: input.weekdays,
+          startTime: input.startTime,
+          endTime: input.endTime,
+          roomNumber: input.roomNumber ?? null,
+          meetingUrl: input.meetingUrl ?? null,
+          startDate: input.startDate,
+          endDate: input.endDate,
+          capacity: input.capacity,
+        },
+      });
+      if (windows.length > 0) {
+        await tx.lessonSession.createMany({
+          data: windows.map((window) => ({
+            batchId: created.id,
+            teacherId: input.teacherId,
+            startsAt: window.startsAt,
+            endsAt: window.endsAt,
+            roomNumber: input.roomNumber ?? null,
+            meetingUrl: input.meetingUrl ?? null,
+            status: 'scheduled',
+          })),
+        });
+      }
+      return tx.batch.findUniqueOrThrow({
+        where: { id: created.id },
+        include: batchInclude,
+      });
     });
     return toBatch(row);
   }
@@ -129,6 +161,9 @@ function toBatch(row: BatchRow): Batch {
     cefrLevel: row.course.cefrLevel,
     courseType: row.course.courseType,
     scheduleLabel: row.scheduleLabel,
+    weekdays: row.weekdays,
+    startTime: row.startTime,
+    endTime: row.endTime,
     roomNumber: row.roomNumber,
     meetingUrl: row.meetingUrl,
     startDate: row.startDate,

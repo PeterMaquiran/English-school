@@ -6,6 +6,10 @@ export type {
   CreateCourseInput,
   Enrollment,
   HireTeacherInput,
+  LessonSession,
+  LessonSessionDetail,
+  MarkAttendanceInput,
   SeatStudentInput,
   Teacher,
+  UpdateSessionStatusInput,
 } from './data/dtos';

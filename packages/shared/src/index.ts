@@ -11,7 +11,13 @@ export {
   type LevelChangeSource,
   PAY_LATER_DAYS,
   SEAT_HOLDING_STATUSES,
+  attendanceStatusSchema,
+  lessonSessionStatusSchema,
   paymentStatusSchema,
+  timeOfDaySchema,
+  weekdaySchema,
+  type AttendanceStatus,
+  type LessonSessionStatus,
   type PaymentStatus,
   type Role,
 } from './enums.js';
@@ -25,7 +31,18 @@ export {
   recommendCefrFromScore,
   scoreBandsOverlap,
   type GroupCourseLevelFit,
+  type ScoreBand,
 } from './cefr.js';
+
+export {
+  ATTENDANCE_LOCK_AFTER_MS,
+  UNMARKED_BECOMES_ABSENT_AFTER_MS,
+  WEEKDAY_LABELS,
+  attendanceIsLocked,
+  formatScheduleLabel,
+  listGroupSessionWindows,
+  unmarkedShouldBecomeAbsent,
+} from './sessions.js';
 
 export {
   adminAdjustCefrBodySchema,
@@ -64,6 +81,7 @@ export {
 } from './placement.js';
 
 export {
+  attendanceRecordSchema,
   batchSchema,
   courseSchema,
   createBatchInputSchema,
@@ -71,8 +89,13 @@ export {
   enrollmentSchema,
   hireTeacherInputSchema,
   invoiceSchema,
+  lessonSessionDetailSchema,
+  lessonSessionSchema,
+  markAttendanceInputSchema,
   seatStudentInputSchema,
   teacherSchema,
+  updateSessionStatusInputSchema,
+  type AttendanceRecord,
   type Batch,
   type Course,
   type CreateBatchInput,
@@ -80,6 +103,10 @@ export {
   type Enrollment,
   type HireTeacherInput,
   type Invoice,
+  type LessonSession,
+  type LessonSessionDetail,
+  type MarkAttendanceInput,
   type SeatStudentInput,
   type Teacher,
+  type UpdateSessionStatusInput,
 } from './classes.js';

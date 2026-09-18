@@ -3,28 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ZodError, type ZodType } from 'zod';
 import {
   createBatchInputSchema,
   createCourseInputSchema,
+  formatScheduleLabel,
   type CreateBatchInput,
   type CreateCourseInput,
 } from '@english-school/shared';
+import { parseBody } from '../../shared/http/parse-body.js';
 import { TeachersRepository } from '../teachers/teachers.repository.js';
 import { CoursesRepository } from './courses.repository.js';
-
-function parseBody<T>(schema: ZodType<T>, raw: unknown): T {
-  try {
-    return schema.parse(raw);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      throw new BadRequestException(
-        error.issues[0]?.message ?? 'Invalid input',
-      );
-    }
-    throw error;
-  }
-}
 
 @Injectable()
 export class CoursesService {
@@ -49,11 +37,12 @@ export class CoursesService {
     const input = parseBody(createCourseInputSchema, {
       ...raw,
       courseType: raw.courseType ?? 'group',
-    });
+    }) as CreateCourseInput;
+    const courseType = input.courseType ?? 'group';
     return this.courses.createCourse({
       ...input,
-      defaultCapacity:
-        input.courseType === 'private' ? 1 : input.defaultCapacity,
+      courseType,
+      defaultCapacity: courseType === 'private' ? 1 : input.defaultCapacity,
     });
   }
 
@@ -71,7 +60,7 @@ export class CoursesService {
 
   async createBatch(courseId: string, raw: CreateBatchInput) {
     const course = await this.getCourse(courseId);
-    const input = parseBody(createBatchInputSchema, raw);
+    const input = parseBody(createBatchInputSchema, raw) as CreateBatchInput;
     const teacher = await this.teachers.findById(input.teacherId);
     if (!teacher) {
       throw new NotFoundException('Teacher not found');
@@ -97,6 +86,11 @@ export class CoursesService {
     const capacity = input.capacity ?? course.defaultCapacity;
     return this.courses.createBatch(courseId, {
       ...input,
+      scheduleLabel: formatScheduleLabel(
+        input.weekdays,
+        input.startTime,
+        input.endTime,
+      ),
       roomNumber,
       meetingUrl,
       capacity,

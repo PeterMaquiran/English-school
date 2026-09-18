@@ -61,6 +61,37 @@ export function formatSeatStatus(status: string) {
       return status.replaceAll('_', ' ');
   }
 }
+
+export function formatSessionStatus(status: string) {
+  switch (status) {
+    case 'scheduled':
+      return 'Scheduled';
+    case 'completed':
+      return 'Done';
+    case 'cancelled':
+      return 'Cancelled';
+    case 'rescheduled':
+      return 'Moved';
+    default:
+      return status;
+  }
+}
+
+export function formatAttendanceStatus(status: string | null) {
+  if (!status) {
+    return 'Not marked';
+  }
+  switch (status) {
+    case 'present':
+      return 'Present';
+    case 'absent':
+      return 'Absent';
+    case 'excused':
+      return 'Excused';
+    default:
+      return status;
+  }
+}
 export function optionalNumber(value: string): number | null | undefined {
   const trimmed = value.trim();
   if (!trimmed) {
