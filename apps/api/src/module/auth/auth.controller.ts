@@ -8,7 +8,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiCookieAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { CurrentUser } from '../../shared/decorators/current-user.decorator.js';
 import { JwtAuthGuard } from '../../shared/guards/jwt-auth.guard.js';
@@ -28,6 +33,8 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
+  @ApiOperation({ summary: 'Sign in and set auth cookies' })
+  @ApiOkResponse({ description: 'Authenticated user' })
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) response: Response,
@@ -61,6 +68,8 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('es_access_token')
+  @ApiOperation({ summary: 'Current authenticated user' })
   me(@CurrentUser() user: JwtUser) {
     return this.auth.me(user.id);
   }

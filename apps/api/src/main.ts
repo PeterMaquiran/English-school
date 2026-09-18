@@ -32,7 +32,9 @@ async function bootstrap() {
     .addCookieAuth('es_access_token')
     .addBearerAuth()
     .build();
-  SwaggerModule.setup('api', app, SwaggerModule.createDocument(app, swagger));
+  const document = SwaggerModule.createDocument(app, swagger);
+  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(config.port);
 }

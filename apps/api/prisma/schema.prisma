@@ -15,18 +15,94 @@ enum Role {
   parent
 }
 
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum LevelChangeSource {
+  placement
+  evaluation
+  admin
+}
+
 model User {
-  id            String         @id @default(uuid()) @db.Uuid
-  name          String
-  email         String         @unique
-  passwordHash  String?        @map("password_hash")
-  role          Role
-  phone         String?
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
-  refreshTokens RefreshToken[]
+  id                      String                @id @default(uuid()) @db.Uuid
+  name                    String
+  email                   String                @unique
+  passwordHash            String?               @map("password_hash")
+  role                    Role
+  phone                   String?
+  createdAt               DateTime              @default(now()) @map("created_at")
+  updatedAt               DateTime              @updatedAt @map("updated_at")
+  refreshTokens           RefreshToken[]
+  student                 Student?
+  confirmedPlacementTests PlacementTest[]       @relation("PlacementTestConfirmedBy")
+  studentLevelChanges     StudentLevelHistory[]
 
   @@map("users")
+}
+
+model Student {
+  id                     String                @id @default(uuid()) @db.Uuid
+  userId                 String                @unique @map("user_id") @db.Uuid
+  cefrLevel              CefrLevel?            @map("cefr_level")
+  targetLevel            CefrLevel?            @map("target_level")
+  lessonCreditsRemaining Decimal               @default(0) @map("lesson_credits_remaining") @db.Decimal(6, 2)
+  createdAt              DateTime              @default(now()) @map("created_at")
+  user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placementTests         PlacementTest[]
+  levelHistory           StudentLevelHistory[]
+
+  @@map("students")
+}
+
+model PlacementScoreBand {
+  id        String    @id @default(uuid()) @db.Uuid
+  minScore  Decimal   @map("min_score") @db.Decimal(5, 2)
+  maxScore  Decimal   @map("max_score") @db.Decimal(5, 2)
+  cefrLevel CefrLevel @map("cefr_level")
+
+  @@map("placement_score_bands")
+}
+
+model PlacementTest {
+  id               String    @id @default(uuid()) @db.Uuid
+  studentId        String    @map("student_id") @db.Uuid
+  takenAt          DateTime  @map("taken_at")
+  listening        Decimal?  @db.Decimal(5, 2)
+  reading          Decimal?  @db.Decimal(5, 2)
+  writing          Decimal?  @db.Decimal(5, 2)
+  speaking         Decimal?  @db.Decimal(5, 2)
+  overall          Decimal   @db.Decimal(5, 2)
+  recommendedLevel CefrLevel @map("recommended_level")
+  confirmedAt      DateTime? @map("confirmed_at")
+  confirmedByUserId String?  @map("confirmed_by_user_id") @db.Uuid
+  notes            String?
+  student          Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  confirmedBy      User?     @relation("PlacementTestConfirmedBy", fields: [confirmedByUserId], references: [id])
+
+  @@index([studentId])
+  @@map("placement_tests")
+}
+
+model StudentLevelHistory {
+  id          String            @id @default(uuid()) @db.Uuid
+  studentId   String            @map("student_id") @db.Uuid
+  fromLevel   CefrLevel?        @map("from_level")
+  toLevel     CefrLevel         @map("to_level")
+  source      LevelChangeSource
+  actorUserId String            @map("actor_user_id") @db.Uuid
+  createdAt   DateTime          @default(now()) @map("created_at")
+  student     Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  actor       User              @relation(fields: [actorUserId], references: [id])
+
+  @@index([studentId, createdAt])
+  @@map("student_level_history")
 }
 
 model RefreshToken {
